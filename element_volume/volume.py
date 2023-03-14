@@ -38,15 +38,13 @@ def activate(
 
     Dependencies:
     Tables:
-        Session: A parent table to Volume
-        URLs: A table with any of the following volume_url, segmentation_url,
-            connectome_url
-        Mask: imaging segmentation mask for cell matching
+        Scan: A parent table to Volume
+        Channel: A parent table to Volume
     Functions:
-        get_vol_root_data_dir: Returns absolute path for root data director(y/ies) with
+        get_volume_root_data_dir: Returns absolute path for root data director(y/ies) with
             all volumetric data, as a list of string(s).
-        get_session_directory: When given a session key (dict), returns path to
-            volumetric data for that session as a list of strings.
+        get_volume_tif_files: When given a scan key (dict), returns the list of TIFF files 
+            associated with a given Volume.
     """
 
     if isinstance(linking_module, str):
@@ -69,7 +67,7 @@ def activate(
 # -------------------------- Functions required by the Element -------------------------
 
 
-def get_vol_root_data_dir() -> list:
+def get_volume_root_data_dir() -> list:
     """Fetches absolute data path to ephys data directories.
 
     The absolute path here is used as a reference for all downstream relative paths used in DataJoint.
@@ -84,138 +82,30 @@ def get_vol_root_data_dir() -> list:
     return root_directories
 
 
-def get_session_directory(session_key: dict) -> str:
-    """Retrieve the session directory with volumetric data for the given session.
-
+def get_volume_tif_files(scan_key: dict) -> list:
+    """Retrieve the list of TIFF files associated with a given Volume.
     Args:
-        session_key (dict): A dictionary mapping subject to an entry in the subject
-            table, and session identifier corresponding to a session in the database.
-
+        scan_key: Primary key of a Scan entry.
     Returns:
-        A string for the path to the session directory.
+        A list of TIFF files' full file-paths.
     """
-    return _linking_module.get_session_directory(session_key)
+    return _linking_module.get_volume_tif_files(scan_key)
 
 
 # --------------------------------------- Schema ---------------------------------------
 
-
 @schema
-class Resolution(dj.Lookup):
-    definition = """ # Resolution of stored data
-    resolution_id: varchar(32) # Shorthand for convention
+class Volume(dj.Imported):
+    definition = """
+    -> Scan
+    -> Channel
     ---
-    voxel_unit: varchar(16) # e.g., nanometers
-    voxel_z_size: float # size of one z dimension voxel in voxel_units
-    voxel_y_size: float # size of one y dimension voxel in voxel_units
-    voxel_x_size: float # size of one x dimension voxel in voxel_units
-    downsampling=0: int # Downsampling iterations relative to raw data
-    """
-
-
-@schema
-class Volume(dj.Manual):
-    definition = """ # Dataset of a contiguous volume
-    volume_id : varchar(32) # shorthand for this volume
-    -> Resolution
-    ---
-    -> [nullable] Session
-    z_size: int # total number of voxels in z dimension
-    y_size: int # total number of voxels in y dimension
     x_size: int # total number of voxels in x dimension
-    slicing_dimension='z': enum('x','y','z') # perspective of slices
-    channel: varchar(64) # data type or modality
-    -> [nullable] URLs.Volume
-    volume_data = null: longblob # Upload assumes (Z, Y, X) np.array
+    y_size: int # total number of voxels in y dimension
+    z_size: int # total number of voxels in z dimension
+    volume: longblob  # volumetric data - np.ndarray with shape (x, y, z)
+    depth_mean_brightness=null: longblob  # mean brightness of each slice across the depth (z) dimension of the stack
     """
-
-    @classmethod
-    def download(
-        cls,
-        url: str,
-        downsampling: Optional[int] = 0,
-        session_key: Optional[dict] = None,
-        **kwargs,
-    ):
-        data = BossDBInterface(url, resolution=downsampling, session_key=session_key)
-        data.insert_channel_as_url(data_channel="Volume")
-        data.load_data_into_element(**kwargs)
-
-    @classmethod
-    def return_bossdb_data(self, volume_key: dict):
-        url, res_id = (Volume & volume_key).fetch1("url", "resolution_id")
-        downsampling = (Resolution & dict(resolution_id=res_id)).fetch("downsampling")
-        return BossDBInterface(url, resolution=downsampling)
-
-    @classmethod
-    def upload(
-        cls,
-        volume_key: dict,
-        session_key: Optional[dict] = None,
-        upload_from: Optional[str] = "table",
-        data_dir: Optional[str] = None,
-        dtype: Optional[DTypeLike] = None,
-        **kwargs,
-    ):
-        # NOTE: uploading from data_dir (local rel path) assumes 1 image per z slice
-        # If not upload_from 'table', upload files in data_dir
-
-        if upload_from == "table":
-            data = (Volume & volume_key).fetch1("volume_data")
-            dtype = dtype or data.dtype  # if provided, fetch from
-        else:  # Uploading from image files
-            data = None
-
-            if not dtype:
-                raise ValueError("Must specify dtype when loading data from images")
-
-            if not data_dir and session_key:
-                data_dir = find_full_path(
-                    get_vol_root_data_dir(),
-                    get_session_directory(session_key),
-                )
-            if not Path(data_dir).is_absolute():
-                raise ValueError(f"Could not find absolute path to data: {data_dir}")
-
-        if isinstance(dtype, str):
-            dtype = np.dtype(dtype)
-        if dtype and dtype not in [np.dtype("uint8"), np.dtype("uint16")]:
-            raise ValueError("BossDB only accepts uint8 or uint16 image data.")
-
-        (
-            url,
-            downsampling,
-            z_size,
-            y_size,
-            x_size,
-            voxel_z_size,
-            voxel_y_size,
-            voxel_x_size,
-            voxel_unit,
-        ) = (Volume * Resolution & volume_key).fetch1(
-            "url",
-            "downsampling",
-            "z_size",
-            "y_size",
-            "x_size",
-            "voxel_z_size",
-            "voxel_y_size",
-            "voxel_x_size",
-            "voxel_unit",
-        )
-
-        bossdb = BossDBUpload(
-            url=url,
-            raw_data=data,
-            data_dir=data_dir,
-            voxel_size=(float(i) for i in (voxel_z_size, voxel_y_size, voxel_x_size)),
-            voxel_units=voxel_unit,
-            shape_zyx=(int(i) for i in (z_size, y_size, x_size)),
-            resolution=downsampling,
-            dtype=dtype,
-            **kwargs,
-        )
-        bossdb.upload()
 
 
 @schema

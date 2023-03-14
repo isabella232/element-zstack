@@ -10,8 +10,7 @@ from PIL import Image
 from PIL.Image import _fromarray_typemap
 from requests import HTTPError
 
-from .. import volume
-from ..bossdb import BossDBURLs
+from .. import bossdb
 
 logger = logging.getLogger("datajoint")
 
@@ -153,9 +152,9 @@ class BossDBInterface(array):
         collection_key = dict(
             collection_experiment=self.collection_name + "_" + self.experiment_name
         )
-        with BossDBURLs.connection.transaction:
-            BossDBURLs.insert1(collection_key, skip_duplicates=skip_duplicates)
-            getattr(BossDBURLs, data_channel).insert1(
+        with volume.BossDBURLs.connection.transaction:
+            volume.BossDBURLs.insert1(collection_key, skip_duplicates=skip_duplicates)
+            getattr(volume.BossDBURLs, data_channel).insert1(
                 dict(
                     url=f"bossdb://{self._channel.get_cutout_route()}", **collection_key
                 ),

@@ -2,6 +2,8 @@ import importlib
 import inspect
 import logging
 from pathlib import Path
+
+import numpy as np
 from tifffile import TiffFile
 
 import datajoint as dj
@@ -235,5 +237,27 @@ class Segmentation(dj.Imported):
                 progress=True,
             )
             masks, flows, styles = cellpose_results
+
+            mask_entries = []
+            for mask_id in np.unique(masks[0]):
+                mask = np.argwhere(masks[0] == mask_id)
+                mask_zpix, mask_ypix, mask_xpix = mask.T
+                mask_npix = mask.shape[0]
+                mask_center_z, mask_center_y, mask_center_x = np.round(mask.mean(axis=0))
+                mask_weights = np.full_like(mask_zpix, 1)
+                mask_entries.append({**key,
+                                     'mask': mask_id,
+                                     'mask_npix': mask_npix,
+                                     'mask_center_x': mask_center_x,
+                                     'mask_center_y': mask_center_y,
+                                     'mask_center_z': mask_center_z,
+                                     'mask_xpix': mask_xpix,
+                                     'mask_ypix': mask_ypix,
+                                     'mask_zpix': mask_zpix,
+                                     'mask_weights': mask_weights})
         else:
             raise NotImplementedError
+
+        self.insert1(key)
+        self.Mask.insert(mask_entries)
+        

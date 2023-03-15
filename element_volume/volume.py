@@ -260,4 +260,3 @@ class Segmentation(dj.Imported):
 
         self.insert1(key)
         self.Mask.insert(mask_entries)
-        

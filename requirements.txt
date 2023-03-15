@@ -1,3 +1,4 @@
 datajoint>=0.13.0
 element-interface>=0.3.0
-intern git+https://github.com/jhuapl-boss/intern # Pending release of 1.4.1
+intern @ git+https://github.com/jhuapl-boss/intern # Pending release of 1.4.1
+cellpose>=2.2

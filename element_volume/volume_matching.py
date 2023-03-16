@@ -1,13 +1,9 @@
 import datajoint as dj
 import numpy as np
-import importlib
-import inspect
-import pathlib
 import hashlib
 import uuid
-from collections.abc import Callable
 
-from element_interface.utils import dict_to_uuid, find_full_path, find_root_directory
+from element_interface.utils import dict_to_uuid
 
 from . import volume
 
@@ -32,6 +28,7 @@ def activate(
         create_tables (bool): When True (default), create tables in the database if they
             do not yet exist.
     """
+    assert volume.schema.is_activated(), 'The "volume" schema must be activated'
     schema.activate(
         schema_name,
         create_schema=create_schema,

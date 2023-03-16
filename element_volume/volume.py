@@ -96,7 +96,6 @@ def get_volume_tif_file(scan_key: dict) -> (str, Path):
 class Volume(dj.Imported):
     definition = """
     -> Scan
-    -> Channel
     ---
     px_width: int # total number of voxels in x dimension
     px_height: int # total number of voxels in y dimension
@@ -196,7 +195,7 @@ class SegmentationTask(dj.Manual):
 
 
 @schema
-class Segmentation(dj.Imported):
+class Segmentation(dj.Computed):
     definition = """
     -> SegmentationTask
     """
@@ -207,9 +206,9 @@ class Segmentation(dj.Imported):
         mask            : smallint
         ---
         mask_npix       : int       # number of pixels in ROIs
-        mask_center_x   : int       # center x coordinate in pixel
-        mask_center_y   : int       # center y coordinate in pixel
-        mask_center_z   : int       # center z coordinate in pixel
+        mask_center_x   : float     # center x coordinate in pixel
+        mask_center_y   : float     # center y coordinate in pixel
+        mask_center_z   : float     # center z coordinate in pixel
         mask_xpix       : longblob  # x coordinates in pixels
         mask_ypix       : longblob  # y coordinates in pixels
         mask_zpix       : longblob  # z coordinates in pixels
@@ -229,7 +228,7 @@ class Segmentation(dj.Imported):
             cellpose_results = model.eval(
                 [volume_data],
                 diameter=params['diameter'],
-                channels=[[0, 0]],
+                channels=params.get('channels', [[0, 0]]),
                 min_size=params['min_size'],
                 z_axis=0,
                 do_3D=params['do_3d'],
@@ -239,11 +238,11 @@ class Segmentation(dj.Imported):
             masks, flows, styles = cellpose_results
 
             mask_entries = []
-            for mask_id in np.unique(masks[0]):
+            for mask_id in set(masks[0].flatten()) - {0}:
                 mask = np.argwhere(masks[0] == mask_id)
                 mask_zpix, mask_ypix, mask_xpix = mask.T
                 mask_npix = mask.shape[0]
-                mask_center_z, mask_center_y, mask_center_x = np.round(mask.mean(axis=0))
+                mask_center_z, mask_center_y, mask_center_x = mask.mean(axis=0)
                 mask_weights = np.full_like(mask_zpix, 1)
                 mask_entries.append({**key,
                                      'mask': mask_id,

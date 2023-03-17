@@ -222,9 +222,9 @@ class Segmentation(dj.Computed):
         )
         output_dir = find_full_path(get_volume_root_data_dir(), output_dir).as_posix()
         if task_mode == "trigger" and seg_method.lower() == "cellpose":
-            from cellpose import models
+            from cellpose import models as cellpose_models
             volume_data = (Volume & key).fetch1("volume")
-            model = models.CellposeModel(model_type=params['model_type'])
+            model = cellpose_models.CellposeModel(model_type=params['model_type'])
             cellpose_results = model.eval(
                 [volume_data],
                 diameter=params['diameter'],

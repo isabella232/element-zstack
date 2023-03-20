@@ -24,7 +24,7 @@ setup(
     author_email="info@datajoint.com",
     license="MIT",
     url=f'https://github.com/datajoint/{pkg_name.replace("_", "-")}',
-    keywords="neuroscience lab management datajoint",
+    keywords="neuroscience cell matching volume registration",
     packages=find_packages(exclude=["contrib", "docs", "tests*"]),
     install_requires=requirements,
 )

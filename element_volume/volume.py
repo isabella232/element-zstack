@@ -71,7 +71,7 @@ def get_volume_root_data_dir() -> list:
     The absolute path here is used as a reference for all downstream relative paths used in DataJoint.
 
     Returns:
-        A list of the absolute path(s) to ephys data directories.
+        A list of the absolute path(s) to volume data directories.
     """
     root_directories = _linking_module.get_vol_root_data_dir()
     if isinstance(root_directories, (str, Path)):
@@ -206,9 +206,9 @@ class Segmentation(dj.Computed):
         mask            : smallint
         ---
         mask_npix       : int       # number of pixels in ROIs
-        mask_center_x   : float     # center x coordinate in pixel
-        mask_center_y   : float     # center y coordinate in pixel
-        mask_center_z   : float     # center z coordinate in pixel
+        mask_center_x   : float     # X component of the 3D mask centroid in pixel units.
+        mask_center_y   : float     # Y component of the 3D mask centroid in pixel units.
+        mask_center_z   : float     # Z component of the 3D mask centroid in pixel units.
         mask_xpix       : longblob  # x coordinates in pixels
         mask_ypix       : longblob  # y coordinates in pixels
         mask_zpix       : longblob  # z coordinates in pixels

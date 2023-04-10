@@ -113,7 +113,8 @@ class Volume(dj.Imported):
                 volume=volume_data,
                 px_width=volume_data.shape[2],
                 px_height=volume_data.shape[1],
-                px_depth=volume_data.shape[0]
+                px_depth=volume_data.shape[0],
+                depth_mean_brightness=volume_data.mean(axis=(1, 2))
             )
         )
 

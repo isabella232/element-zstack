@@ -1,11 +1,12 @@
 # Concepts
 
+
 <!-- ## BossDB Data -->
 
 ## Key Partnerships
 
 Over the several years, many labs have developed DataJoint-based pipelines for volumetric
-data. The DataJoint team collaborated with several and interviewed these teams to
+data. The DataJoint team interviewed and collaborated these teams to
 understand their experiment workflow, associated tools, and interfaces. These teams
 include:
 

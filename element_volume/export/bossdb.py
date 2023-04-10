@@ -1,8 +1,9 @@
 import logging
-from typing import Optional, Tuple
+from typing import Optional, Tuple, Union
 
 import numpy as np
 from datajoint.errors import DataJointError
+from intern import array
 from intern.convenience.array import _parse_bossdb_uri
 from intern.remote.boss import BossRemote
 from intern.resource.boss.resource import (
@@ -14,8 +15,6 @@ from intern.resource.boss.resource import (
 from PIL import Image
 from requests import HTTPError
 from tqdm.auto import tqdm
-
-from ..readers.bossdb import BossDBInterface
 
 logger = logging.getLogger("datajoint")
 
@@ -30,10 +29,11 @@ class BossDBUpload:
         shape_zyx: Tuple[int, int, int],
         resolution: int = 0,
         raw_data: np.array = None,
+        data_type: str = "image",
         data_extension: Optional[str] = "",  # Can omit if uploading every file in dir
         upload_increment: Optional[int] = 16,  # How many z slices to upload at once
         retry_max: Optional[int] = 3,  # Number of retries to upload a single
-        dtype: Optional[str] = None,  # type of the image data. e.g., uint8, uint64
+        dtype: Optional[str] = "None",  # type of the image data. e.g., uint8, uint64
         overwrite: Optional[bool] = False,  # Overwrite existing data
     ):
         # TODO: Move comments to full docstring
@@ -50,12 +50,20 @@ class BossDBUpload:
         self._shape_zyx = tuple(int(i) for i in shape_zyx)
         self._resolution = resolution
         self._raw_data = raw_data
+        self._data_type = data_type
         self._data_extension = data_extension
         self._upload_increment = upload_increment
         self._retry_max = retry_max
         self._overwrite = overwrite
         self.description = "Uploaded via DataJoint"
         self._resources = dict()
+        if (
+            self._data_type == "image" and self._raw_data is None
+        ):  # 'is None' bc np.array as ambiguous truth value
+            self._image_paths = self.fetch_images()
+            self._dtype = dtype or "None"
+        else:
+            self._dtype = str(self._raw_data.dtype)
 
         self.url_exists = BossDBInterface(self._url).exists
         if not overwrite and self.url_exists:
@@ -68,12 +76,6 @@ class BossDBUpload:
         if not self.url_exists:
             self.try_create_new()
 
-        if self._raw_data is None:  # 'is None' bc np.array as ambiguous truth value
-            self._image_paths = self.fetch_images()
-            self._dtype = dtype or None
-        else:
-            self._dtype = dtype or self._raw_data.dtype
-
     def fetch_images(self):
         image_paths = sorted(self._data_dir.glob("*" + self._data_extension))
         if not image_paths:
@@ -82,21 +84,6 @@ class BossDBUpload:
                 + f"{self._data_dir}/*{self._data_extension}."
             )
         return image_paths
-
-    @property
-    def dataset(self):
-        return BossDBInterface(
-            self._url,
-            extents=self._shape_zyx,
-            dtype=self._dtype,
-            resolution=self._resolution,
-            voxel_size=self._voxel_size,
-            voxel_unit=self._voxel_units,
-            create_new=True,  # not self.url_exists,  # If the url does not exist, create new
-            source_channel=self.url_bits.channel,
-            # volume_provider=_BossDBVolumeProvider(),
-            # description=self.description,
-        )
 
     def upload(self):
         z_max = self._shape_zyx[0]
@@ -179,7 +166,7 @@ class BossDBUpload:
                     name=self.url_bits.channel,
                     collection_name=self.url_bits.collection,
                     experiment_name=self.url_bits.experiment,
-                    type="image",
+                    type=self._data_type,
                     description=self.description,
                     datatype=self._dtype,
                 ),
@@ -187,7 +174,7 @@ class BossDBUpload:
                     name=self.url_bits.channel,
                     collection_name=self.url_bits.collection,
                     experiment_name=self.url_bits.experiment,
-                    type="image",
+                    type=self._data_type,
                     description=self.description,
                     datatype=self._dtype,
                     sources=[],
@@ -226,3 +213,35 @@ class BossDBUpload:
             logger.info(f"Creating {obj.name}")
             result = remote.create_project(obj)
         return result
+
+
+class BossDBInterface(array):
+    def __init__(
+        self,
+        channel: Union[Tuple, str],
+        session_key: Optional[dict] = None,
+        volume_id: Optional[str] = None,
+        **kwargs,
+    ) -> None:
+
+        try:
+            super().__init__(channel=channel, **kwargs)
+            self._exists = True
+        except HTTPError as e:
+            if e.response.status_code == 404 and not kwargs.get("create_new", False):
+                self._exists = False
+                return
+            else:
+                raise e
+
+        self._session_key = session_key or dict()
+
+        # If not passed resolution or volume IDs, use the following defaults:
+        self._volume_key = dict(
+            volume_id=volume_id or self.collection_name + "/" + self.experiment_name,
+            resolution_id=self.resolution,
+        )
+
+    @property
+    def exists(self):
+        return self._exists

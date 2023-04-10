@@ -73,14 +73,14 @@ def get_volume_root_data_dir() -> list:
     Returns:
         A list of the absolute path(s) to ephys data directories.
     """
-    root_directories = _linking_module.get_vol_root_data_dir()
+    root_directories = _linking_module.get_volume_root_data_dir()
     if isinstance(root_directories, (str, Path)):
         root_directories = [root_directories]
 
     return root_directories
 
 
-def get_volume_tif_file(scan_key: dict) -> (str, Path):
+def get_volume_tif_file(scan_key: dict):
     """Retrieve the full path to the TIF file of the volumetric data associated with a given scan.
     Args:
         scan_key: Primary key of a Scan entry.
@@ -92,8 +92,21 @@ def get_volume_tif_file(scan_key: dict) -> (str, Path):
 
 # --------------------------------------- Schema ---------------------------------------
 
+
 @schema
 class Volume(dj.Imported):
+    """Table for storing volumetric scan data.
+
+    Attributes:
+        Scan (foreign key): Scan primary key.
+        px_width (int): total number of voxels in x dimension.
+        px_height (int): total number of voxels in y dimension.
+        px_depth (int): total number of voxels in z dimension.
+        depth_mean_brightness (longblob): Mean brightness of each slice across
+        the depth of the stack.
+        volume (longblob): Volumtric data in np.ndarray with shape (z, y, x).
+    """
+
     definition = """
     -> Scan
     ---
@@ -114,13 +127,24 @@ class Volume(dj.Imported):
                 volume=volume_data,
                 px_width=volume_data.shape[2],
                 px_height=volume_data.shape[1],
-                px_depth=volume_data.shape[0]
+                px_depth=volume_data.shape[0],
             )
         )
 
 
 @schema
 class SegmentationParamset(dj.Lookup):
+    """Stores parameters for volumetric segmentation with cellpose.
+
+    Attributes:
+        paramset_idx (foreign key): Unique ID for the segmentation parameter set.
+        segmentation_method (varchar(32)): Segmentation method. Ex. "cellpose".
+        paramset_desc (varchar(256)): Description of the segmentation parameter
+        set.
+        params (longblob): Parameters for segmentation with cellpose.
+        paramset_hash (uuid): UUID hash for the parameter set.
+    """
+
     definition = """
     paramset_idx: int
     ---
@@ -185,6 +209,17 @@ class SegmentationParamset(dj.Lookup):
 
 @schema
 class SegmentationTask(dj.Manual):
+    """A segmentation task to process volumetric datasets.
+
+    Attributes:
+        Volume (foreign key): Volume primary key.
+        SegmentationParamset (foreign key): SegmentationParamset primary key.
+        segmentation_output_dir (varchar(255)): Relative path to output
+        segmentation results.
+        task_mode (enum): `Trigger` computes segmentation and `load` imports
+        existing data.
+    """
+
     definition = """
     -> Volume
     -> SegmentationParamset
@@ -196,11 +231,32 @@ class SegmentationTask(dj.Manual):
 
 @schema
 class Segmentation(dj.Computed):
+    """A processing table to handle each segmentation task.
+
+    Attributes:
+        SegmentationTask (foreign key): SegmentationTask primary key.
+    """
+
     definition = """
     -> SegmentationTask
     """
 
     class Mask(dj.Part):
+        """Singular mask properties after segmentation.
+
+        Attributes:
+            Segmentation (foreign key): Segmentation primary key.
+            mask (foreign key, int): Unique integer identifying a single mask.
+            mask_npix (int): Number of pixels in the mask ROI.
+            mask_center_x (float): Center x coordinate in pixel.
+            mask_center_y (float): Center y coordinate in pixel.
+            mask_center_z (float): Center z coordinate in pixel.
+            mask_xpix (longblob): x coordinates of the mask in pixels.
+            mask_ypix (longblob): y coordinates of the mask in pixels.
+            mask_zpix (longblob): z coordinates of the mask in pixels.
+            mask_weights (longblob): Weights of each mask.
+        """
+
         definition = """ # A mask produced by segmentation.
         -> master
         mask            : smallint
@@ -216,23 +272,27 @@ class Segmentation(dj.Computed):
         """
 
     def make(self, key):
+        """Automated population of mask information."""
         # NOTE: convert seg data to unit8 instead of uint64
-        task_mode, seg_method, output_dir, params = (SegmentationTask * SegmentationParamset & key).fetch1(
-            "task_mode", "segmentation_method", "processing_output_dir", "params"
+        task_mode, seg_method, output_dir, params = (
+            SegmentationTask * SegmentationParamset & key
+        ).fetch1(
+            "task_mode", "segmentation_method", "segmentation_output_dir", "params"
         )
         output_dir = find_full_path(get_volume_root_data_dir(), output_dir).as_posix()
         if task_mode == "trigger" and seg_method.lower() == "cellpose":
             from cellpose import models as cellpose_models
+
             volume_data = (Volume & key).fetch1("volume")
-            model = cellpose_models.CellposeModel(model_type=params['model_type'])
+            model = cellpose_models.CellposeModel(model_type=params["model_type"])
             cellpose_results = model.eval(
                 [volume_data],
-                diameter=params['diameter'],
-                channels=params.get('channels', [[0, 0]]),
-                min_size=params['min_size'],
+                diameter=params["diameter"],
+                channels=params.get("channels", [[0, 0]]),
+                min_size=params["min_size"],
                 z_axis=0,
-                do_3D=params['do_3d'],
-                anisotropy=params['anisotropy'],
+                do_3D=params["do_3d"],
+                anisotropy=params["anisotropy"],
                 progress=True,
             )
             masks, flows, styles = cellpose_results
@@ -244,18 +304,35 @@ class Segmentation(dj.Computed):
                 mask_npix = mask.shape[0]
                 mask_center_z, mask_center_y, mask_center_x = mask.mean(axis=0)
                 mask_weights = np.full_like(mask_zpix, 1)
-                mask_entries.append({**key,
-                                     'mask': mask_id,
-                                     'mask_npix': mask_npix,
-                                     'mask_center_x': mask_center_x,
-                                     'mask_center_y': mask_center_y,
-                                     'mask_center_z': mask_center_z,
-                                     'mask_xpix': mask_xpix,
-                                     'mask_ypix': mask_ypix,
-                                     'mask_zpix': mask_zpix,
-                                     'mask_weights': mask_weights})
+                mask_entries.append(
+                    {
+                        **key,
+                        "mask": mask_id,
+                        "mask_npix": mask_npix,
+                        "mask_center_x": mask_center_x,
+                        "mask_center_y": mask_center_y,
+                        "mask_center_z": mask_center_z,
+                        "mask_xpix": mask_xpix,
+                        "mask_ypix": mask_ypix,
+                        "mask_zpix": mask_zpix,
+                        "mask_weights": mask_weights,
+                    }
+                )
         else:
             raise NotImplementedError
 
         self.insert1(key)
         self.Mask.insert(mask_entries)
+
+
+@schema
+class BossDBURLs(dj.Manual):
+    definition = """
+    -> Volume
+    ---
+    data_type: enum('image', 'annotation') 
+    collection_name: varchar(64)
+    experiment_name: varchar(64)
+    volume_url="": varchar(64)
+    segmentation_url="": varchar(64)
+    """

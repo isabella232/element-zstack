@@ -26,7 +26,7 @@ def activate(
     """Activate this schema
 
     Args:
-        schema_name (str): schema name on the database server to activate the `lab` element
+        schema_name (str): schema name on the database server to activate the `zstack` element
         create_schema (bool): when True (default), create schema in the database if it
                             does not yet exist.
         create_tables (bool): when True (default), create schema tables in the database
@@ -37,7 +37,6 @@ def activate(
     Dependencies:
     Tables:
         Scan: A parent table to Volume
-        Channel: A parent table to Volume
     Functions:
         get_volume_root_data_dir: Returns absolute path for root data director(y/ies) with
             all volumetric data, as a list of string(s).
@@ -66,14 +65,14 @@ def activate(
 
 
 def get_volume_root_data_dir() -> list:
-    """Fetches absolute data path to ephys data directories.
+    """Fetches absolute data path to volume data directories.
 
     The absolute path here is used as a reference for all downstream relative paths used in DataJoint.
 
     Returns:
         A list of the absolute path(s) to volume data directories.
     """
-    root_directories = _linking_module.get_vol_root_data_dir()
+    root_directories = _linking_module.get_volume_root_data_dir()
     if isinstance(root_directories, (str, Path)):
         root_directories = [root_directories]
 
@@ -142,9 +141,9 @@ class SegmentationParamset(dj.Lookup):
         """Inserts new parameters into the table.
 
         Args:
-            segmentation_method (str): name of the clustering method.
-            paramset_desc (str): description of the parameter set
-            params (dict): clustering parameters
+            segmentation_method (str): name of the segmentation method (e.g. cellpose)
+            paramset_desc (str, optional): description of the parameter set
+            params (dict): segmentation parameters
             paramset_idx (int, optional): Unique parameter set ID. Defaults to None.
         """
         if paramset_idx is None:
@@ -206,12 +205,12 @@ class Segmentation(dj.Computed):
         mask            : smallint
         ---
         mask_npix       : int       # number of pixels in ROIs
-        mask_center_x   : float     # X component of the 3D mask centroid in pixel units.
-        mask_center_y   : float     # Y component of the 3D mask centroid in pixel units.
-        mask_center_z   : float     # Z component of the 3D mask centroid in pixel units.
-        mask_xpix       : longblob  # x coordinates in pixels
-        mask_ypix       : longblob  # y coordinates in pixels
-        mask_zpix       : longblob  # z coordinates in pixels
+        mask_center_x   : float     # X component of the 3D mask centroid in pixel units
+        mask_center_y   : float     # Y component of the 3D mask centroid in pixel units
+        mask_center_z   : float     # Z component of the 3D mask centroid in pixel units
+        mask_xpix       : longblob  # x coordinates in pixels units
+        mask_ypix       : longblob  # y coordinates in pixels units
+        mask_zpix       : longblob  # z coordinates in pixels units
         mask_weights    : longblob  # weights of the mask at the indices above
         """
 

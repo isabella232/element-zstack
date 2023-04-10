@@ -14,7 +14,7 @@
     "flagWords": [],
     "allowCompoundWords": true,
     "ignorePaths": [
-        "./element_array_ephys.egg-info/*",
+        "./element_zstack.egg-info/*",
         "./images/*"
     ],
     "words": [

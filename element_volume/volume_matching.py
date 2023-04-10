@@ -55,7 +55,7 @@ class VolumeMatchTask(dj.Manual):
         Args:
             vol_keys (tuple): a tuple of (volA_key, volB_key)
         """
-        assert len(vol_keys) == 2, f"Volume match task only support matching two volumes, {len(vol_keys)} are provided"
+        assert len(vol_keys) == 2, f"Volume match task only supports matching two volumes, {len(vol_keys)} are provided"
         vol_keys = [(volume.Segmentation & k).fetch1("KEY") for k in vol_keys]
         assert len(set(vol_keys)) == 2, "The two specified volumes are identical"
 
@@ -84,7 +84,7 @@ class VolumeMatch(dj.Computed):
     class Transformation(dj.Part):
         definition = """  # transformation matrix
         -> master
-        -> VolumeMatchingTask.Volume
+        -> VolumeMatchTask.Volume
         ---
         transformation_matrix: longblob  # the transformation matrix to transform to the common space
         """
@@ -97,7 +97,7 @@ class VolumeMatch(dj.Computed):
     class VolumeMask(dj.Part):
         definition = """
         -> master.CommonMask
-        -> VolumeMatchingTask.Volume
+        -> VolumeMatchTask.Volume
         ---
         -> volume.Segmentation.Mask
         confidence: float

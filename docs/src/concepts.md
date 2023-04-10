@@ -4,12 +4,13 @@
 
 ## Key Partnerships
 
-Over the several years, many labs have developed DataJoint-based pipelines for volumetric
+Many labs have developed DataJoint-based pipelines for volumetric
 data. The DataJoint team collaborated with several and interviewed these teams to
 understand their experiment workflow, associated tools, and interfaces. These teams
 include:
 
-- Applied Physics Laboratory, Johns Hopkins
+- Andreas Tolias Lab, Baylor College of Medicine
+- Applied Physics Laboratory, Johns Hopkins University
 
 ## Element architecture
 

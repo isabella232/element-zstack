@@ -10,8 +10,6 @@ from . import volume
 
 schema = dj.Schema()
 
-_linking_module = None
-
 
 def activate(
     schema_name: str,
@@ -22,7 +20,7 @@ def activate(
     """Activate this schema.
     Args:
         schema_name (str): Schema name on the database server to activate the
-            `imaging_report` schema
+            `volume_matching` schema
         create_schema (bool): When True (default), create schema in the database if it
             does not yet exist.
         create_tables (bool): When True (default), create tables in the database if they
@@ -50,26 +48,26 @@ class VolumeMatchTask(dj.Manual):
         """
 
     @classmethod
-    def insert1(cls, vol_keys, **kwargs):
+    def insert1(cls, vol_seg_keys, **kwargs):
         """
         Args:
-            vol_keys (tuple): a tuple of (volA_key, volB_key)
+            vol_seg_keys (tuple): a tuple of two cell-segmented volumes
         """
-        assert len(vol_keys) == 2, f"Volume match task only supports matching two volumes, {len(vol_keys)} are provided"
-        vol_keys = [(volume.Segmentation & k).fetch1("KEY") for k in vol_keys]
-        assert len(set(vol_keys)) == 2, "The two specified volumes are identical"
+        assert len(vol_seg_keys) == 2, f"Volume match task only supports matching two cell-segmented volumes, {len(vol_seg_keys)} are provided"
+        vol_seg_keys = [(volume.Segmentation & k).fetch1("KEY") for k in vol_seg_keys]
+        assert len(set(vol_seg_keys)) == 2, "The two specified cell-segmented volumes are identical"
 
         hashed = hashlib.md5()
-        [hashed.update(str(k).encode()) for k in sorted([dict_to_uuid(k) for k in vol_keys])]
+        [hashed.update(str(k).encode()) for k in sorted([dict_to_uuid(k) for k in vol_seg_keys])]
 
         mkey = {'volume_match_task': uuid.UUID(hex=hashed.hexdigest())}
         if cls & mkey:
-            assert len(cls.Volume & mkey & vol_keys) == 2
+            assert len(cls.Volume & mkey & vol_seg_keys) == 2
             return
 
         with cls.connection.transaction:
             super().insert1(cls(), mkey, **kwargs)
-            cls.Volume.insert({**mkey, **k} for k in vol_keys)
+            cls.Volume.insert({**mkey, **k} for k in vol_seg_keys)
 
 
 @schema

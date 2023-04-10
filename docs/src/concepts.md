@@ -16,7 +16,7 @@ include:
 
 <!--![element bossdb diagram](https://raw.githubusercontent.com/datajoint/element-bossdb/images/volume_diagram.svg)-->
 
-<!-- ### `volume` schema ([API docs](./api/element_volume/volume/))
+<!-- ### `volume` schema ([API docs](./api/element_zstack/volume/))
 
 | Table                 | Description                                                 |
 | ------------------    | ------------------------------------------------------------|

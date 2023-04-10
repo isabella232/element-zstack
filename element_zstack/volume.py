@@ -132,18 +132,18 @@ class SegmentationParamset(dj.Lookup):
 
     @classmethod
     def insert_new_params(
-        cls,
-        segmentation_method: str,
-        paramset_desc: str = "",
-        params: dict = {},
-        paramset_idx: int = None,
+            cls,
+            segmentation_method: str,
+            params: dict,
+            paramset_desc: str = "",
+            paramset_idx: int = None,
     ):
         """Inserts new parameters into the table.
 
         Args:
             segmentation_method (str): name of the segmentation method (e.g. cellpose)
-            paramset_desc (str, optional): description of the parameter set
             params (dict): segmentation parameters
+            paramset_desc (str, optional): description of the parameter set
             paramset_idx (int, optional): Unique parameter set ID. Defaults to None.
         """
         if paramset_idx is None:

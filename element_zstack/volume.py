@@ -218,7 +218,7 @@ class Segmentation(dj.Computed):
     def make(self, key):
         # NOTE: convert seg data to unit8 instead of uint64
         task_mode, seg_method, output_dir, params = (SegmentationTask * SegmentationParamset & key).fetch1(
-            "task_mode", "segmentation_method", "processing_output_dir", "params"
+            "task_mode", "segmentation_method", "segmentation_output_dir", "params"
         )
         output_dir = find_full_path(get_volume_root_data_dir(), output_dir).as_posix()
         if task_mode == "trigger" and seg_method.lower() == "cellpose":

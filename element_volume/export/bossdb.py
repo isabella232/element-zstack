@@ -1,247 +1,123 @@
+import importlib
+import inspect
 import logging
-from typing import Optional, Tuple, Union
+from pathlib import Path
 
 import numpy as np
-from datajoint.errors import DataJointError
-from intern import array
-from intern.convenience.array import _parse_bossdb_uri
-from intern.remote.boss import BossRemote
-from intern.resource.boss.resource import (
-    ChannelResource,
-    CollectionResource,
-    CoordinateFrameResource,
-    ExperimentResource,
-)
-from PIL import Image
-from requests import HTTPError
-from tqdm.auto import tqdm
+from tifffile import TiffFile
+
+import datajoint as dj
+from element_interface.utils import dict_to_uuid, find_full_path
+
+from .upload_utils import BossDBUpload
+from ..volume import Volume
 
 logger = logging.getLogger("datajoint")
 
+schema = dj.Schema()
+_linking_module = None
 
-class BossDBUpload:
-    def __init__(
-        self,
-        url: str,
-        data_dir: str,  # Local absolute path
-        voxel_size: Tuple[int, int, int],  # voxel size in ZYX order
-        voxel_units: str,  # The size units of a voxel
-        shape_zyx: Tuple[int, int, int],
-        resolution: int = 0,
-        raw_data: np.array = None,
-        data_type: str = "image",
-        data_extension: Optional[str] = "",  # Can omit if uploading every file in dir
-        upload_increment: Optional[int] = 16,  # How many z slices to upload at once
-        retry_max: Optional[int] = 3,  # Number of retries to upload a single
-        dtype: Optional[str] = "None",  # type of the image data. e.g., uint8, uint64
-        overwrite: Optional[bool] = False,  # Overwrite existing data
-    ):
-        # TODO: Move comments to full docstring
-        # upload_increment (int):  For best performance, use be a multiple of 16.
-        #   With a lot of RAM, 64. If out-of-memory errors, decrease to 16. If issues
-        #   persist, try 8 or 4.
 
-        # int/float typing bc upload had issues with json serializing np.int64
-        self._url = url
-        self.url_bits = _parse_bossdb_uri(url)
-        self._data_dir = data_dir
-        self._voxel_size = tuple(float(i) for i in voxel_size)
-        self._voxel_units = voxel_units
-        self._shape_zyx = tuple(int(i) for i in shape_zyx)
-        self._resolution = resolution
-        self._raw_data = raw_data
-        self._data_type = data_type
-        self._data_extension = data_extension
-        self._upload_increment = upload_increment
-        self._retry_max = retry_max
-        self._overwrite = overwrite
-        self.description = "Uploaded via DataJoint"
-        self._resources = dict()
-        if (
-            self._data_type == "image" and self._raw_data is None
-        ):  # 'is None' bc np.array as ambiguous truth value
-            self._image_paths = self.fetch_images()
-            self._dtype = dtype or "None"
-        else:
-            self._dtype = str(self._raw_data.dtype)
+def activate(
+    schema_name: str,
+    *,
+    create_schema: bool = True,
+    create_tables: bool = True,
+    linking_module: str = None,
+):
+    """Activate this schema
 
-        self.url_exists = BossDBInterface(self._url).exists
-        if not overwrite and self.url_exists:
-            logger.warning(
-                f"Dataset exists already exists at {self._url}\n"
-                + " To overwrite, set `overwrite` to True"
-            )
-            return
+    Args:
+        schema_name (str): schema name on the database server to activate the `lab` element
+        create_schema (bool): when True (default), create schema in the database if it
+                            does not yet exist.
+        create_tables (bool): when True (default), create schema tables in the database
+                             if they do not yet exist.
+        linking_module (str): A string containing the module name or module containing
+            the required dependencies to activate the schema.
 
-        if not self.url_exists:
-            self.try_create_new()
+    Dependencies:
+    Tables:
+        Scan: A parent table to Volume
+        Channel: A parent table to Volume
+    Functions:
+        get_volume_root_data_dir: Returns absolute path for root data director(y/ies) with
+            all volumetric data, as a list of string(s).
+        get_volume_tif_file: When given a scan key (dict), returns the full path to the
+            TIF file of the volumetric data associated with a given scan.
+    """
 
-    def fetch_images(self):
-        image_paths = sorted(self._data_dir.glob("*" + self._data_extension))
-        if not image_paths:
-            raise DataJointError(
-                "No files found in the specified directory "
-                + f"{self._data_dir}/*{self._data_extension}."
-            )
-        return image_paths
+    if isinstance(linking_module, str):
+        linking_module = importlib.import_module(linking_module)
+    assert inspect.ismodule(
+        linking_module
+    ), "The argument 'linking_module' must be a module's name or a module"
 
-    def upload(self):
-        z_max = self._shape_zyx[0]
-        for i in tqdm(range(0, z_max, self._upload_increment)):
-            # whichever smaller increment or end
-            z_limit = min(i + self._upload_increment, z_max)
+    global _linking_module
+    _linking_module = linking_module
 
-            stack = (
-                self._raw_data[i:z_limit]
-                if self._raw_data is not None
-                else self._np_from_images(i, z_limit)
-            )
+    schema.activate(
+        schema_name,
+        create_schema=create_schema,
+        create_tables=create_tables,
+        add_objects=_linking_module.__dict__,
+    )
 
-            if not stack.flags["C_CONTIGUOUS"]:
-                stack = np.ascontiguousarray(stack)
 
-            stack_shape = stack.shape
+@schema
+class VolumeUploadTask(dj.Manual):
+    definition = """
+    -> Volume
+    ---
+    collection_name: varchar(64)
+    experiment_name: varchar(64)
+    channel_name: varchar(64)
+    upload_type='image': enum('image', 'annotation')
+    neuroglancer_link=null: boolean
+    """
 
-            retry_count = 0
 
-            while True:
-                try:
-                    self.dataset[
-                        i : i + stack_shape[0],
-                        0 : stack_shape[1],
-                        0 : stack_shape[2],
-                    ] = stack
-                    break
-                except Exception as e:
-                    logger.error(f"Error uploading chunk {i}-{i + stack_shape[0]}: {e}")
-                    retry_count += 1
-                    if retry_count > self._retry_max:
-                        raise e
-                    logger.info(
-                        f"Retrying increment {i}...{retry_count}/{self._retry_max}"
-                    )
-                    continue
-        # 'Create cutout failed on CalciumImaging, got HTTP response: (400) - {"status":
-        # 400, "code": 2002, "message": "Failed to unpack data. Verify the datatype of
-        # your POSTed data and xyz dimensions used in the POST URL."}'
-
-    def _np_from_images(self, i, z_limit):
-        return np.stack(
-            [
-                np.array(image, dtype=self._dtype)
-                for image in [Image.open(path) for path in self._image_paths[i:z_limit]]
-            ],
-            axis=0,
-        )
+@schema
+class BossDBURLs(dj.Imported):
+    definition = """
+    -> VolumeUploadTask
+    ---
+    bossdb_url: varchar(512)
+    neuroglancer_url='': varchar(1024)
+    """
 
     @property
-    def resources(self):
-        # Default resources for creating channels
-        coord_name = f"CF_{self.url_bits.collection}_{self.url_bits.experiment}"
-        if not self._resources:
-            self._resources = dict(
-                collection=CollectionResource(
-                    name=self.url_bits.collection, description=self.description
-                ),
-                coord_frame=CoordinateFrameResource(
-                    name=coord_name,
-                    description=self.description,
-                    x_start=0,
-                    x_stop=self._shape_zyx[2],
-                    y_start=0,
-                    y_stop=self._shape_zyx[1],
-                    z_start=0,
-                    z_stop=self._shape_zyx[0],
-                    x_voxel_size=self._voxel_size[2],
-                    y_voxel_size=self._voxel_size[1],
-                    z_voxel_size=self._voxel_size[0],
-                ),
-                experiment=ExperimentResource(
-                    name=self.url_bits.experiment,
-                    collection_name=self.url_bits.collection,
-                    coord_frame=coord_name,
-                    description=self.description,
-                ),
-                channel_resource=ChannelResource(
-                    name=self.url_bits.channel,
-                    collection_name=self.url_bits.collection,
-                    experiment_name=self.url_bits.experiment,
-                    type=self._data_type,
-                    description=self.description,
-                    datatype=self._dtype,
-                ),
-                channel=ChannelResource(
-                    name=self.url_bits.channel,
-                    collection_name=self.url_bits.collection,
-                    experiment_name=self.url_bits.experiment,
-                    type=self._data_type,
-                    description=self.description,
-                    datatype=self._dtype,
-                    sources=[],
-                ),
+    def get_neuroglancer_url(self, collection, experiment, channel):
+        base_url = f"boss://https://api.bossdb.io/{collection}/{experiment}/{channel}"
+        return (
+            "https://neuroglancer.bossdb.io/#!{'layers':{'"
+            + f"{experiment}"
+            + "':{'source':'"
+            + base_url
+            + "','name':'"
+            + f"{channel}"
+            + "'}}}"
+        )
+
+    def make(self, key):
+        from element_volume.volume import get_volume_root_data_dir, get_volume_tif_file
+
+        upload_type = (VolumeUploadTask & key).fetch1("upload_type")
+        if upload_type == "image":
+            collection, experiment, channel, upload_type = (
+                VolumeUploadTask & key
+            ).fetch1(
+                "collection_name", "experiment_name", "channel_name", "upload_type"
             )
-        return self._resources
 
-    def try_create_new(self):
-        remote = BossRemote()
-
-        # Make collection
-        _ = self._get_or_create(remote=remote, obj=self.resources["collection"])
-
-        # Make coord frame
-        true_coord_frame = self._get_or_create(
-            remote=remote, obj=self.resources["coord_frame"]
-        )
-
-        # Set Experiment based on coord frame
-        experiment = self.resources["experiment"]
-        experiment.coord_frame = true_coord_frame.name
-        _ = self._get_or_create(remote=remote, obj=experiment)
-
-        # Set channel based on resource
-        channel_resource = self._get_or_create(
-            remote=remote, obj=self.resources["channel_resource"]
-        )
-        channel = self.resources["channel"]
-        channel.sources = [channel_resource.name]
-        _ = self._get_or_create(remote=remote, obj=channel)
-
-    def _get_or_create(self, remote, obj):
-        try:
-            result = remote.get_project(obj)
-        except HTTPError:
-            logger.info(f"Creating {obj.name}")
-            result = remote.create_project(obj)
-        return result
-
-
-class BossDBInterface(array):
-    def __init__(
-        self,
-        channel: Union[Tuple, str],
-        session_key: Optional[dict] = None,
-        volume_id: Optional[str] = None,
-        **kwargs,
-    ) -> None:
-
-        try:
-            super().__init__(channel=channel, **kwargs)
-            self._exists = True
-        except HTTPError as e:
-            if e.response.status_code == 404 and not kwargs.get("create_new", False):
-                self._exists = False
-                return
-            else:
-                raise e
-
-        self._session_key = session_key or dict()
-
-        # If not passed resolution or volume IDs, use the following defaults:
-        self._volume_key = dict(
-            volume_id=volume_id or self.collection_name + "/" + self.experiment_name,
-            resolution_id=self.resolution,
-        )
-
-    @property
-    def exists(self):
-        return self._exists
+            volume_file = get_volume_tif_file(key)
+            boss_url = f"bossdb://{collection}/{experiment}/{channel}"
+            voxel_size = [1, 1, 1]
+            voxel_units = "nanometers"
+            BossDBUpload(
+                url=boss_url,
+                data_dir=volume_file,
+                data_description=upload_type,
+                voxel_size=voxel_size,
+                voxel_units=voxel_units,
+            )

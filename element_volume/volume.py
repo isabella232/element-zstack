@@ -8,6 +8,7 @@ from tifffile import TiffFile
 
 import datajoint as dj
 from element_interface.utils import dict_to_uuid, find_full_path
+# from .export import bossdb
 
 
 logger = logging.getLogger("datajoint")
@@ -18,6 +19,7 @@ _linking_module = None
 
 def activate(
     schema_name: str,
+    # bossdb_schema_name: str = None,
     *,
     create_schema: bool = True,
     create_tables: bool = True,
@@ -53,6 +55,13 @@ def activate(
 
     global _linking_module
     _linking_module = linking_module
+
+    # bossdb.activate(
+    #     bossdb_schema_name,
+    #     create_schema=create_schema,
+    #     create_tables=create_tables,
+    #     linking_module=linking_module,
+    # )
 
     schema.activate(
         schema_name,

@@ -1,7 +1,8 @@
 # Element ZStack
 
-This element features DataJoint schemas for processing volumetric data and
-uploading to the Brain Observatory Storage Service and Database (BossDB). Each Element is a modular pipeline for data storage and processing with
+DataJoint Element for volumetric data segmentation with Cellpose and cell matching across sessions. DataJoint Elements
+collectively standardize and automate data collection and analysis for neuroscience
+experiments. Each Element is a modular pipeline for data storage and processing with
 corresponding database tables that can be combined with other Elements to assemble a
 fully functional pipeline. This Element is comprised of the `volume` and
 `volume_matching` schemas. 

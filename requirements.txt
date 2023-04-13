@@ -1,0 +1,5 @@
+datajoint>=0.13.0
+element-interface>=0.3.0
+intern>=1.4.1
+tifffile>=2023.3.21
+cellpose>=2.2

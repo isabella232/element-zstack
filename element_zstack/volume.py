@@ -91,6 +91,7 @@ def get_volume_tif_file(scan_key: dict) -> (str, Path):
 
 # --------------------------------------- Schema ---------------------------------------
 
+
 @schema
 class Volume(dj.Imported):
     definition = """
@@ -105,7 +106,7 @@ class Volume(dj.Imported):
 
     def make(self, key):
         vol_tif_fp = get_volume_tif_file(key)
-        volume_data = TiffFile(vol_tif_fp).asarray()
+        volume_data = TiffFile(vol_tif_fp[0]).asarray()
 
         self.insert1(
             dict(
@@ -114,7 +115,7 @@ class Volume(dj.Imported):
                 px_width=volume_data.shape[2],
                 px_height=volume_data.shape[1],
                 px_depth=volume_data.shape[0],
-                depth_mean_brightness=volume_data.mean(axis=(1, 2))
+                depth_mean_brightness=volume_data.mean(axis=(1, 2)),
             )
         )
 
@@ -133,11 +134,11 @@ class SegmentationParamset(dj.Lookup):
 
     @classmethod
     def insert_new_params(
-            cls,
-            segmentation_method: str,
-            params: dict,
-            paramset_desc: str = "",
-            paramset_idx: int = None,
+        cls,
+        segmentation_method: str,
+        params: dict,
+        paramset_desc: str = "",
+        paramset_idx: int = None,
     ):
         """Inserts new parameters into the table.
 
@@ -217,22 +218,25 @@ class Segmentation(dj.Computed):
 
     def make(self, key):
         # NOTE: convert seg data to unit8 instead of uint64
-        task_mode, seg_method, output_dir, params = (SegmentationTask * SegmentationParamset & key).fetch1(
+        task_mode, seg_method, output_dir, params = (
+            SegmentationTask * SegmentationParamset & key
+        ).fetch1(
             "task_mode", "segmentation_method", "segmentation_output_dir", "params"
         )
         output_dir = find_full_path(get_volume_root_data_dir(), output_dir).as_posix()
         if task_mode == "trigger" and seg_method.lower() == "cellpose":
             from cellpose import models as cellpose_models
+
             volume_data = (Volume & key).fetch1("volume")
-            model = cellpose_models.CellposeModel(model_type=params['model_type'])
+            model = cellpose_models.CellposeModel(model_type=params["model_type"])
             cellpose_results = model.eval(
                 [volume_data],
-                diameter=params['diameter'],
-                channels=params.get('channels', [[0, 0]]),
-                min_size=params['min_size'],
+                diameter=params["diameter"],
+                channels=params.get("channels", [[0, 0]]),
+                min_size=params["min_size"],
                 z_axis=0,
-                do_3D=params['do_3d'],
-                anisotropy=params['anisotropy'],
+                do_3D=params["do_3d"],
+                anisotropy=params["anisotropy"],
                 progress=True,
             )
             masks, flows, styles = cellpose_results
@@ -244,16 +248,20 @@ class Segmentation(dj.Computed):
                 mask_npix = mask.shape[0]
                 mask_center_z, mask_center_y, mask_center_x = mask.mean(axis=0)
                 mask_weights = np.full_like(mask_zpix, 1)
-                mask_entries.append({**key,
-                                     'mask': mask_id,
-                                     'mask_npix': mask_npix,
-                                     'mask_center_x': mask_center_x,
-                                     'mask_center_y': mask_center_y,
-                                     'mask_center_z': mask_center_z,
-                                     'mask_xpix': mask_xpix,
-                                     'mask_ypix': mask_ypix,
-                                     'mask_zpix': mask_zpix,
-                                     'mask_weights': mask_weights})
+                mask_entries.append(
+                    {
+                        **key,
+                        "mask": mask_id,
+                        "mask_npix": mask_npix,
+                        "mask_center_x": mask_center_x,
+                        "mask_center_y": mask_center_y,
+                        "mask_center_z": mask_center_z,
+                        "mask_xpix": mask_xpix,
+                        "mask_ypix": mask_ypix,
+                        "mask_zpix": mask_zpix,
+                        "mask_weights": mask_weights,
+                    }
+                )
         else:
             raise NotImplementedError
 

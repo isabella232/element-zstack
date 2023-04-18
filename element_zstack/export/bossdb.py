@@ -8,6 +8,7 @@ from tifffile import TiffFile
 
 import datajoint as dj
 from element_interface.utils import dict_to_uuid, find_full_path
+from element_zstack.volume import get_volume_root_data_dir, get_volume_tif_file
 
 from .upload_utils import BossDBUpload
 from ..volume import Volume
@@ -65,15 +66,53 @@ def activate(
 
 
 @schema
+class UploadParamSet(dj.Lookup):
+    definition = """
+    paramset_idx: smallint
+    ---
+    paramset_desc: varchar(512)
+    param_set_hash: uuid
+    params: longblob
+    """
+
+    @classmethod
+    def insert_new_params(cls, paramset_idx: int, paramset_desc: str, params: dict):
+        params_dict = {
+            "paramset_idx": paramset_idx,
+            "paramset_desc": paramset_desc,
+            "params": params,
+            "param_set_hash": dict_to_uuid(params),
+        }
+        param_query = cls & {"param_set_hash": params_dict["param_set_hash"]}
+
+        if param_query:
+            existing_paramset_idx = param_query.fetch1("paramset_idx")
+            if existing_paramset_idx == paramset_idx:
+                return
+            else:
+                raise dj.DataJointError(
+                    f"The specified param-set already exists"
+                    f" - with paramset_idx: {existing_paramset_idx}"
+                )
+        else:
+            if {"paramset_idx": paramset_idx} in cls.proj():
+                raise dj.DataJointError(
+                    f"The specified paramset_idx {paramset_idx} already exists,"
+                    f" please pick a different one."
+                )
+            cls.insert1(params_dict)
+
+
+@schema
 class VolumeUploadTask(dj.Manual):
     definition = """
     -> Volume
+    -> UploadParamSet
+    upload_type='image': enum('image', 'annotation')
     ---
     collection_name: varchar(64)
     experiment_name: varchar(64)
     channel_name: varchar(64)
-    upload_type='image': enum('image', 'annotation')
-    neuroglancer_link=null: boolean
     """
 
 
@@ -86,7 +125,6 @@ class BossDBURLs(dj.Imported):
     neuroglancer_url='': varchar(1024)
     """
 
-    @property
     def get_neuroglancer_url(self, collection, experiment, channel):
         base_url = f"boss://https://api.bossdb.io/{collection}/{experiment}/{channel}"
         return (
@@ -100,24 +138,44 @@ class BossDBURLs(dj.Imported):
         )
 
     def make(self, key):
-        from element_volume.volume import get_volume_root_data_dir, get_volume_tif_file
+        upload_params = (UploadParamSet & key).fetch1("params")
+        collection, experiment, channel, upload_type = (VolumeUploadTask & key).fetch1(
+            "collection_name", "experiment_name", "channel_name", "upload_type"
+        )
 
-        upload_type = (VolumeUploadTask & key).fetch1("upload_type")
         if upload_type == "image":
-            collection, experiment, channel, upload_type = (
-                VolumeUploadTask & key
-            ).fetch1(
-                "collection_name", "experiment_name", "channel_name", "upload_type"
-            )
+            data_file = get_volume_tif_file(key)
+            ng_url = self.get_neuroglancer_url(collection, experiment, channel)
 
-            volume_file = get_volume_tif_file(key)
-            boss_url = f"bossdb://{collection}/{experiment}/{channel}"
-            voxel_size = [1, 1, 1]
-            voxel_units = "nanometers"
-            BossDBUpload(
-                url=boss_url,
-                data_dir=volume_file,
-                data_description=upload_type,
-                voxel_size=voxel_size,
-                voxel_units=voxel_units,
+        elif upload_type == "annotation":
+            from ..volume import SegmentationTask
+
+            ng_url = None
+            output_dir = (SegmentationTask & key).fetch1("segmentation_output_dir")
+            if output_dir == "":
+                data_file = sorted(get_volume_root_data_dir()[0].glob("*seg*.npy"))
+            else:
+                data_file = sorted(
+                    find_full_path(get_volume_root_data_dir(), output_dir)
+                    .as_posix()
+                    .glob("*seg*.npy")
+                )
+
+        boss_url = f"bossdb://{collection}/{experiment}/{channel}"
+        voxel_size = upload_params.get("voxel_size")
+        voxel_units = upload_params.get("voxel_units")
+        BossDBUpload(
+            url=boss_url,
+            data_dir=data_file,
+            data_description=upload_type,
+            voxel_size=voxel_size,
+            voxel_units=voxel_units,
+        ).upload()
+
+        self.insert1(
+            dict(
+                key,
+                bossdb_url=boss_url,
+                neuroglancer_url=ng_url if ng_url is not None else "null",
             )
+        )

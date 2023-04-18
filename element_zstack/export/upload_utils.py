@@ -1,6 +1,6 @@
 import logging
-from typing import Optional, Tuple, Union
-
+from typing import Optional, Tuple
+from tifffile import TiffFile
 import numpy as np
 from datajoint.errors import DataJointError
 from intern import array
@@ -12,7 +12,6 @@ from intern.resource.boss.resource import (
     CoordinateFrameResource,
     ExperimentResource,
 )
-from PIL import Image
 from requests import HTTPError
 from tqdm.auto import tqdm
 
@@ -27,8 +26,6 @@ class BossDBUpload:
         data_description: str,
         voxel_size: Tuple[int, int, int],  # voxel size in ZYX order
         voxel_units: str,  # The size units of a voxel
-        shape_zyx: Tuple[int, int, int],
-        resolution: int = 0,
         data_extension: Optional[str] = "",  # Can omit if uploading every file in dir
         upload_increment: Optional[int] = 16,  # How many z slices to upload at once
         retry_max: Optional[int] = 3,  # Number of retries to upload a single
@@ -45,8 +42,6 @@ class BossDBUpload:
         self._data_dir = data_dir
         self._voxel_size = tuple(float(i) for i in voxel_size)
         self._voxel_units = voxel_units
-        self._shape_zyx = tuple(int(i) for i in shape_zyx)
-        self._resolution = resolution
         self._data_description = data_description
         self._data_extension = data_extension
         self._upload_increment = upload_increment
@@ -54,8 +49,14 @@ class BossDBUpload:
         self._overwrite = overwrite
         self.description = "Uploaded via DataJoint"
         self._resources = dict()
-        self._image_paths = self.fetch_images()
-        self._raw_data = self._np_from_images()
+        # self._image_paths = self.fetch_images()
+        if self._data_description == "image":
+            self._raw_data = self._np_from_images()
+
+        elif self._data_description == "annotation":
+            self._raw_data = self._load_seg()
+
+        self._shape_zyx = tuple(int(i) for i in self._raw_data.shape)
 
         try:
             type(array(self._url))
@@ -73,61 +74,64 @@ class BossDBUpload:
         if not self.url_exists:
             self.try_create_new()
 
-    def fetch_images(self):
-        image_paths = sorted(self._data_dir.glob("*" + self._data_extension))
-        if not image_paths:
-            raise DataJointError(
-                "No files found in the specified directory "
-                + f"{self._data_dir}/*{self._data_extension}."
-            )
-        return image_paths
-
     def _np_from_images(self):
-        volume_image = np.stack(
-            [
-                np.array(image)
-                for image in [Image.open(path) for path in self._image_paths]
-            ],
-            axis=0,
-        )
+        volume_original = TiffFile(self._data_dir[0]).asarray()
+        volume_image = np.swapaxes(volume_original, 0, 2)
         return volume_image
 
-    # def upload(self):
-    #     z_max = self._shape_zyx[0]
-    #     for i in tqdm(range(0, z_max, self._upload_increment)):
-    #         # whichever smaller increment or end
-    #         z_limit = min(i + self._upload_increment, z_max)
+    def _load_seg(self):
+        load_npy_original = (
+            np.load(self._data_dir[0], allow_pickle=True).item().get("masks")[0]
+        )
+        segmentation_rs = np.swapaxes(load_npy_original, 0, 2)
+        return segmentation_rs
 
-    #         stack = (
-    #             self._raw_data[i:z_limit]
-    #             if self._raw_data is not None
-    #             else self._np_from_images(i, z_limit)
-    #         )
-
-    #         if not stack.flags["C_CONTIGUOUS"]:
-    #             stack = np.ascontiguousarray(stack)
-
-    #         stack_shape = stack.shape
-
-    #         retry_count = 0
-
-    #         while True:
-    #             try:
-    #                 self.dataset[
-    #                     i : i + stack_shape[0],
-    #                     0 : stack_shape[1],
-    #                     0 : stack_shape[2],
-    #                 ] = stack
-    #                 break
-    #             except Exception as e:
-    #                 logger.error(f"Error uploading chunk {i}-{i + stack_shape[0]}: {e}")
-    #                 retry_count += 1
-    #                 if retry_count > self._retry_max:
-    #                     raise e
-    #                 logger.info(
-    #                     f"Retrying increment {i}...{retry_count}/{self._retry_max}"
-    #                 )
-    #                 continue
+    def upload(self):
+        boss_dataset = array(
+            self._url,
+            extents=self._shape_zyx,
+            dtype=str(self._raw_data.dtype),
+            voxel_size=self._voxel_size,
+            voxel_unit=self._voxel_units,
+        )
+        for i in tqdm(range(0, self._shape_zyx[0], self._upload_increment)):
+            if i + self._upload_increment > self._shape_zyx[0]:
+                # We're at the end of the stack, so upload the remaining images.
+                images = self._raw_data[i : self._shape_zyx[0], :, :]
+                retry_count = 0
+                while True:
+                    try:
+                        boss_dataset[
+                            i : i + images.shape[0],
+                            0 : images.shape[1],
+                            0 : images.shape[2],
+                        ] = images
+                        break
+                    except Exception as e:
+                        print(f"Error uploading chunk {i}-{i + images.shape[0]}: {e}")
+                        retry_count += 1
+                        if retry_count > self._retry_max:
+                            raise e
+                        print("Retrying...")
+                        continue
+            else:
+                images = self._raw_data[i : i + self._upload_increment]
+                retry_count = 0
+                while True:
+                    try:
+                        boss_dataset[
+                            i : i + images.shape[0],
+                            0 : images.shape[1],
+                            0 : images.shape[2],
+                        ] = images
+                        break
+                    except Exception as e:
+                        print(f"Error uploading chunk {i}-{i + images.shape[0]}: {e}")
+                        retry_count += 1
+                        if retry_count > self._retry_max:
+                            raise e
+                        print("Retrying...")
+                        continue
 
     @property
     def resources(self):
@@ -163,7 +167,7 @@ class BossDBUpload:
                     experiment_name=self.url_bits.experiment,
                     type=self._data_description,
                     description=self.description,
-                    datatype=self._raw_data.dtype,
+                    datatype=str(self._raw_data.dtype),
                 ),
                 channel=ChannelResource(
                     name=self.url_bits.channel,
@@ -171,7 +175,7 @@ class BossDBUpload:
                     experiment_name=self.url_bits.experiment,
                     type=self._data_description,
                     description=self.description,
-                    datatype=self._raw_data.dtype,
+                    datatype=str(self._raw_data.dtype),
                     sources=[],
                 ),
             )

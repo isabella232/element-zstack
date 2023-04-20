@@ -133,7 +133,7 @@ class Volume(dj.Imported):
 
 
 @schema
-class SegmentationParamset(dj.Lookup):
+class SegmentationParamSet(dj.Lookup):
     """Parameter set used for segmentation of the volumetric microscopic imaging
     data.
 

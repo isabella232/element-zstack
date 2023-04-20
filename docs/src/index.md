@@ -10,13 +10,9 @@ fully functional pipeline. This Element is comprised of the `volume` and
 - `volume`: features a DataJoint pipeline design for volumetric neuroimaging data, including
   segmentation and connectomics.
 
-- `volume_matching`: ....
+- `volume_matching`: features a DataJoint pipeline design for cell matching
+  across sessions.
 
 Visit the [Concepts page](./concepts.md) for more information about the use
-cases of `volume` schemas and an explanantion of the tbales. To get started with
-building your own data pipeline, visit the Tutorials page.
-
-- is not a complete workflow by itself, but rather a modular design of
-  tables and dependencies.
-
-- can be flexibly attached to any DataJoint workflow.
+cases of the schemas and an explanantion of the tables. To get started with
+building your own data pipeline, visit the [Tutorials](./tutorials/index.md) page.

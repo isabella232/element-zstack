@@ -13,8 +13,8 @@ Storage Service and Database (BossDB).
 
 ## Key Partnerships
 
-Over the several years, many labs have developed DataJoint-based pipelines for volumetric
-data. The DataJoint team interviewed and collaborated these teams to
+Over the years, many labs have developed DataJoint-based pipelines for volumetric
+data. The DataJoint team interviewed and collaborated with these teams to
 understand their experiment workflow, associated tools, and interfaces. These teams
 include:
 
@@ -42,7 +42,7 @@ Major features of Element ZStack include:
 
 Each node in the following diagram represents the analysis code in the workflow and the
 corresponding table in the database.  Within the workflow, Element ZStack
-connects to upstream Elements including Lab, Animal, and Session. For more detailed
+connects to upstream Elements including Lab, Animal, Session, and Calcium Imaging. For more detailed
 documentation on each table, see the API docs for the respective schemas.
 
 The Element is composed of two main schemas, `volume` and `volume_matching`. To handle
@@ -77,6 +77,12 @@ created upload utilities within this Element.
 | Table | Description |
 | --- | --- |
 | Session | Unique experimental session identifier |
+
+### `scan` schema ([API docs](https://datajoint.com/docs/elements/element-calcium-imaging/api/element_calcium_imaging/scan))
+
+| Table | Description |
+| --- | --- |
+| Scan | A set of imaging scans performed in a single session |
 
 ### `volume` schema ([API docs](https://datajoint.com/docs/elements/element-zstack/api/element_zstack/volume))
 

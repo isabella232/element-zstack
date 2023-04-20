@@ -1,10 +1,6 @@
 import importlib
 import inspect
 import logging
-from pathlib import Path
-
-import numpy as np
-from tifffile import TiffFile
 
 import datajoint as dj
 from element_interface.utils import dict_to_uuid, find_full_path
@@ -67,6 +63,18 @@ def activate(
 
 @schema
 class UploadParamSet(dj.Lookup):
+    """Parameter set used for uploading volumetric microscopic imaging data to
+    bossDB.
+
+    Attributes:
+        paramset_idx (smallint): Unique parameter set ID.
+        paramset_desc (varchar(512)): Parameter set description.
+        param_set_hash (uuid): A universally unique identifier for the parameter
+        set.
+        params (longblob): Parameter set for voxel size and voxel units of data
+        to be uploaded.
+    """
+
     definition = """
     paramset_idx: smallint
     ---
@@ -77,6 +85,14 @@ class UploadParamSet(dj.Lookup):
 
     @classmethod
     def insert_new_params(cls, paramset_idx: int, paramset_desc: str, params: dict):
+        """Inserts new parameters into the table.
+
+        Args:
+            paramset_idx (int): Unique parameter set ID
+            paramset_desc (str): Parameter set description
+            params (dict): Voxel size and voxel unit parameters for the upload.
+        """
+
         params_dict = {
             "paramset_idx": paramset_idx,
             "paramset_desc": paramset_desc,
@@ -105,6 +121,19 @@ class UploadParamSet(dj.Lookup):
 
 @schema
 class VolumeUploadTask(dj.Manual):
+    """A pairing of Volume data to be uploaded and parameter set to be used for
+    the upload.
+
+    Attributes:
+        Volume (foreign key): Primary key from `Volume`.
+        UploadParamSet (foreign key): Primary key from `UploadParamSet`.
+        upload_type (str): One of 'image' (volumetric image) or 'annotation'
+        (segmentation data).
+        collection_name (varchar(64)): Name of the collection on bossdb.
+        experiment_name (varchar(64)): Name of the experiment on bossdb.
+        channel_name (varchar(64)): Name of the channel on bossdb.
+    """
+
     definition = """
     -> Volume
     -> UploadParamSet
@@ -118,6 +147,14 @@ class VolumeUploadTask(dj.Manual):
 
 @schema
 class BossDBURLs(dj.Imported):
+    """Uploads data to bossdb and stores the bossdb and neuroglancer URLs.
+
+    Attributes:
+        VolumeUploadTask (foreign key): Primary key from `VolumeUploadTask`.
+        bossdb_url (varchar(512)): bossdb URL for the uploaded data.
+        neuroglancer_url (varchar(1024)): neuroglancer URL for the uploaded data.
+    """
+
     definition = """
     -> VolumeUploadTask
     ---

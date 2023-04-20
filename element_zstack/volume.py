@@ -27,21 +27,19 @@ def activate(
 
     Args:
         schema_name (str): schema name on the database server to activate the `zstack` element
-        create_schema (bool): when True (default), create schema in the database if it
-                            does not yet exist.
-        create_tables (bool): when True (default), create schema tables in the database
-                             if they do not yet exist.
-        linking_module (str): A string containing the module name or module containing
-            the required dependencies to activate the schema.
+        create_schema (bool): when True (default), create schema in the database
+        if it does not yet exist.
+        create_tables (bool): when True (default), create schema tables in the database if they do not yet exist.
+        linking_module (str): A string containing the module name or module
+        containing the required dependencies to activate the schema.
 
-    Dependencies:
     Tables:
         Scan: A parent table to Volume
     Functions:
-        get_volume_root_data_dir: Returns absolute path for root data director(y/ies) with
-            all volumetric data, as a list of string(s).
-        get_volume_tif_file: When given a scan key (dict), returns the full path to the
-            TIF file of the volumetric data associated with a given scan.
+        get_volume_root_data_dir: Returns absolute path for root data
+        director(y/ies) with all volumetric data, as a list of string(s).
+        get_volume_tif_file: When given a scan key (dict), returns the full path
+        to the TIF file of the volumetric data associated with a given scan.
     """
 
     if isinstance(linking_module, str):
@@ -94,6 +92,19 @@ def get_volume_tif_file(scan_key: dict) -> (str, Path):
 
 @schema
 class Volume(dj.Imported):
+    """Details about the volumetric microscopic imaging data.
+
+    Attributes:
+        Scan (foreign key): Primary key from `imaging.Scan`.
+        px_width (int): total number of voxels in the x dimension.
+        px_height (int): total number of voxels in the y dimension.
+        px_depth (int): total number of voxels in the z dimension.
+        depth_mean_brightness (longblob): mean brightness of each slice across
+        the depth (z) dimension of the stack.
+        volume (longblob): volumetric data - np.ndarray with shape (z, y, x) and
+        dtype('uint8').
+    """
+
     definition = """
     -> Scan
     ---
@@ -105,6 +116,7 @@ class Volume(dj.Imported):
     """
 
     def make(self, key):
+        """Populate the Volume table with volumetric microscopic imaging data."""
         vol_tif_fp = get_volume_tif_file(key)
         volume_data = TiffFile(vol_tif_fp[0]).asarray()
 
@@ -122,6 +134,19 @@ class Volume(dj.Imported):
 
 @schema
 class SegmentationParamset(dj.Lookup):
+    """Parameter set used for segmentation of the volumetric microscopic imaging
+    data.
+
+    Attributes:
+        paramset_idx (int): Unique parameter set ID.
+        segmentation_method (str): Name of the segmentation method (e.g.
+        cellpose).
+        params (longblob): Parameter Set, a dictionary of all applicable
+        parameters to the analysis suite.
+        paramset_desc (str): Parameter set description.
+        param_set_hash (uuid): A universally unique identifier for the parameter set.
+    """
+
     definition = """
     paramset_idx: int
     ---
@@ -186,6 +211,23 @@ class SegmentationParamset(dj.Lookup):
 
 @schema
 class SegmentationTask(dj.Manual):
+    """A pairing of the segmentation parameters and volumes to be loaded to
+    triggered.
+
+    This table defines a segmentation task for volumetric microscopic imaging
+    data. The task defined here is run in the downstream table `Segmentation`.
+    This table currently only supports triggering segmentation via cellpose.
+
+    Attributes:
+        Volume (foreign key): Primary key from `Volume`.
+        SegmentationParamset (foreign key): Primary key from
+        `SegmentationParamset`.
+        segmentation_output_dir (varchar(255)): Output directory of the
+        segmented results relative to the root data directory.
+        task_mode (str): One of 'load' (load computed analysis results) or
+        'trigger' (trigger computation).
+    """
+
     definition = """
     -> Volume
     -> SegmentationParamset
@@ -197,11 +239,33 @@ class SegmentationTask(dj.Manual):
 
 @schema
 class Segmentation(dj.Computed):
+    """Perform the computation of an entry (task) defined in the
+    SegmentationTask table.
+
+    Attributes:
+        SegmentationTask (foreign key): Primary key from SegmentationTask.
+    """
+
     definition = """
     -> SegmentationTask
     """
 
     class Mask(dj.Part):
+        """Details of the masks identified from the Segmentation procedure.
+
+        Attributes:
+            Segmentation (foreign key): Primary key from Segmentation.
+            mask (int): Unique mask ID.
+            mask_npix (int): Number of pixels in ROIs.
+            mask_center_x (float): Center x coordinate in pixel.
+            mask_center_y (float): Center y coordinate in pixel.
+            mask_center_z (float): Center z coordinate in pixel.
+            mask_xpix (longblob): X coordinates in pixels.
+            mask_ypix (longblob): Y coordinates in pixels.
+            mask_zpix (longblob): Z coordinates in pixels.
+            mask_weights (longblob): Weights of the mask at the indicies above.
+        """
+
         definition = """ # A mask produced by segmentation.
         -> master
         mask            : smallint
@@ -217,6 +281,8 @@ class Segmentation(dj.Computed):
         """
 
     def make(self, key):
+        """Populate the Segmentation with results parsed from analysis outputs."""
+
         # NOTE: convert seg data to unit8 instead of uint64
         task_mode, seg_method, output_dir, params = (
             SegmentationTask * SegmentationParamset & key

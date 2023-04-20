@@ -2,7 +2,6 @@ import logging
 from typing import Optional, Tuple
 from tifffile import TiffFile
 import numpy as np
-from datajoint.errors import DataJointError
 from intern import array
 from intern.convenience.array import _parse_bossdb_uri
 from intern.remote.boss import BossRemote
@@ -19,6 +18,8 @@ logger = logging.getLogger("datajoint")
 
 
 class BossDBUpload:
+    """Upload data to bossdb from a DataJoint pipeline."""
+
     def __init__(
         self,
         url: str,
@@ -31,12 +32,23 @@ class BossDBUpload:
         retry_max: Optional[int] = 3,  # Number of retries to upload a single
         overwrite: Optional[bool] = False,  # Overwrite existing data
     ):
-        # TODO: Move comments to full docstring
-        # upload_increment (int):  For best performance, use be a multiple of 16.
-        #   With a lot of RAM, 64. If out-of-memory errors, decrease to 16. If issues
-        #   persist, try 8 or 4.
+        """Required information for data upload to bossdb.
 
-        # int/float typing bc upload had issues with json serializing np.int64
+        Args:
+            url (str): Bossdb URL where data will be uploaded.
+            data_dir (str): Full path to local directory where data is stored.
+            data_description (str): either `image` or `annotation.
+            voxel_size (Tuple[int, int, int]): Voxel size of the image in z,y,x
+            format.
+            voxel_units (str): Voxel units as string.
+            data_extension (str, optional): Extension of files to be uploaded.
+            upload_increment (int, optional): Number of z slices to upload at
+            once.
+            retry_max (int, optional): Number of retries to upload a single
+            increment.
+            overwrite (bool, optional): Overwrite existing data.
+        """
+
         self._url = url
         self.url_bits = _parse_bossdb_uri(url)
         self._data_dir = data_dir
@@ -75,11 +87,23 @@ class BossDBUpload:
             self.try_create_new()
 
     def _np_from_images(self):
+        """Generate numpy array from image path in z,y,x dimensions.
+
+        Returns:
+            numpy.ndarray: Numpy array of z,y,x image dimensions.
+        """
+
         volume_original = TiffFile(self._data_dir[0]).asarray()
         volume_image = np.swapaxes(volume_original, 0, 2)
         return volume_image
 
     def _load_seg(self):
+        """Generate numpy array from segmentation data.
+
+        Returns:
+            numpy.ndarray: Numpy array of segmentation data for z,y,x image dimensions.
+        """
+
         load_npy_original = (
             np.load(self._data_dir[0], allow_pickle=True).item().get("masks")[0]
         )
@@ -87,6 +111,7 @@ class BossDBUpload:
         return segmentation_rs
 
     def upload(self):
+        """Upload data to bossdb."""
         boss_dataset = array(
             self._url,
             extents=self._shape_zyx,
@@ -135,6 +160,7 @@ class BossDBUpload:
 
     @property
     def resources(self):
+        """Create the resources objects required for uploading data to bossdb."""
         # Default resources for creating channels
         coord_name = f"CF_{self.url_bits.collection}_{self.url_bits.experiment}"
         if not self._resources:
@@ -182,6 +208,7 @@ class BossDBUpload:
         return self._resources
 
     def try_create_new(self):
+        """Create new resources on bossdb."""
         remote = BossRemote()
 
         # Make collection
@@ -206,6 +233,7 @@ class BossDBUpload:
         _ = self._get_or_create(remote=remote, obj=channel)
 
     def _get_or_create(self, remote, obj):
+        """Check if a resource exists on bossdb."""
         try:
             result = remote.get_project(obj)
         except HTTPError:

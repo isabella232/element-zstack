@@ -132,6 +132,16 @@ class Volume(dj.Imported):
         )
 
 
+class VoxelSize(dj.Manual):
+    definition = """
+    -> Volume
+    ---
+    width: float # voxel size in mm in the x dimension
+    height: float # voxel size in mm in the y dimension
+    depth: float # voxel size in mm in the z dimension
+    """
+
+
 @schema
 class SegmentationParamSet(dj.Lookup):
     """Parameter set used for segmentation of the volumetric microscopic imaging
@@ -283,9 +293,9 @@ class Segmentation(dj.Computed):
     def make(self, key):
         """Populate the Segmentation with results parsed from analysis outputs."""
 
-        # NOTE: convert seg data to unit8 instead of uint64
+        # NOTE: convert seg data to unit16 instead of uint64
         task_mode, seg_method, output_dir, params = (
-            SegmentationTask * SegmentationParamset & key
+            SegmentationTask * SegmentationParamSet & key
         ).fetch1(
             "task_mode", "segmentation_method", "segmentation_output_dir", "params"
         )

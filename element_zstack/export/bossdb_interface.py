@@ -1,6 +1,5 @@
 import logging
 from typing import Optional, Tuple
-from tifffile import TiffFile
 import numpy as np
 from intern import array
 from intern.convenience.array import _parse_bossdb_uri
@@ -23,11 +22,10 @@ class BossDBUpload:
     def __init__(
         self,
         url: str,
-        data_dir: str,  # Local absolute path
+        volume_data: np.ndarray,  # Local absolute path
         data_description: str,
         voxel_size: Tuple[int, int, int],  # voxel size in ZYX order
         voxel_units: str,  # The size units of a voxel
-        data_extension: Optional[str] = "",  # Can omit if uploading every file in dir
         upload_increment: Optional[int] = 16,  # How many z slices to upload at once
         retry_max: Optional[int] = 3,  # Number of retries to upload a single
         overwrite: Optional[bool] = False,  # Overwrite existing data
@@ -51,24 +49,16 @@ class BossDBUpload:
 
         self._url = url
         self.url_bits = _parse_bossdb_uri(url)
-        self._data_dir = data_dir
+        self._volume_data = volume_data
         self._voxel_size = tuple(float(i) for i in voxel_size)
         self._voxel_units = voxel_units
         self._data_description = data_description
-        self._data_extension = data_extension
         self._upload_increment = upload_increment
         self._retry_max = retry_max
         self._overwrite = overwrite
         self.description = "Uploaded via DataJoint"
         self._resources = dict()
-        # self._image_paths = self.fetch_images()
-        if self._data_description == "image":
-            self._raw_data = self._np_from_images()
-
-        elif self._data_description == "annotation":
-            self._raw_data = self._load_seg()
-
-        self._shape_zyx = tuple(int(i) for i in self._raw_data.shape)
+        self._shape_zyx = tuple(int(i) for i in self._volume_data.shape)
 
         try:
             type(array(self._url))
@@ -86,43 +76,19 @@ class BossDBUpload:
         if not self.url_exists:
             self.try_create_new()
 
-    def _np_from_images(self):
-        """Generate numpy array from image path in z,y,x dimensions.
-
-        Returns:
-            numpy.ndarray: Numpy array of z,y,x image dimensions.
-        """
-
-        volume_original = TiffFile(self._data_dir[0]).asarray()
-        volume_image = np.swapaxes(volume_original, 0, 2)
-        return volume_image
-
-    def _load_seg(self):
-        """Generate numpy array from segmentation data.
-
-        Returns:
-            numpy.ndarray: Numpy array of segmentation data for z,y,x image dimensions.
-        """
-
-        load_npy_original = (
-            np.load(self._data_dir[0], allow_pickle=True).item().get("masks")[0]
-        )
-        segmentation_rs = np.swapaxes(load_npy_original, 0, 2)
-        return segmentation_rs
-
     def upload(self):
         """Upload data to bossdb."""
         boss_dataset = array(
             self._url,
             extents=self._shape_zyx,
-            dtype=str(self._raw_data.dtype),
+            dtype=str(self._volume_data.dtype),
             voxel_size=self._voxel_size,
             voxel_unit=self._voxel_units,
         )
         for i in tqdm(range(0, self._shape_zyx[0], self._upload_increment)):
             if i + self._upload_increment > self._shape_zyx[0]:
                 # We're at the end of the stack, so upload the remaining images.
-                images = self._raw_data[i : self._shape_zyx[0], :, :]
+                images = self._volume_data[i : self._shape_zyx[0], :, :]
                 retry_count = 0
                 while True:
                     try:
@@ -140,7 +106,7 @@ class BossDBUpload:
                         print("Retrying...")
                         continue
             else:
-                images = self._raw_data[i : i + self._upload_increment]
+                images = self._volume_data[i : i + self._upload_increment]
                 retry_count = 0
                 while True:
                     try:
@@ -193,7 +159,7 @@ class BossDBUpload:
                     experiment_name=self.url_bits.experiment,
                     type=self._data_description,
                     description=self.description,
-                    datatype=str(self._raw_data.dtype),
+                    datatype=str(self._volume_data.dtype),
                 ),
                 channel=ChannelResource(
                     name=self.url_bits.channel,
@@ -201,7 +167,7 @@ class BossDBUpload:
                     experiment_name=self.url_bits.experiment,
                     type=self._data_description,
                     description=self.description,
-                    datatype=str(self._raw_data.dtype),
+                    datatype=str(self._volume_data.dtype),
                     sources=[],
                 ),
             )

@@ -4,10 +4,10 @@ import logging
 
 import datajoint as dj
 from element_interface.utils import dict_to_uuid, find_full_path
+from element_zstack import volume
 from element_zstack.volume import get_volume_root_data_dir, get_volume_tif_file
 
-from .upload_utils import BossDBUpload
-from ..volume import Volume
+from .export.bossdb_interface import BossDBUpload
 
 logger = logging.getLogger("datajoint")
 
@@ -62,71 +62,12 @@ def activate(
 
 
 @schema
-class UploadParamSet(dj.Lookup):
-    """Parameter set used for uploading volumetric microscopic imaging data to
-    bossDB.
-
-    Attributes:
-        paramset_idx (smallint): Unique parameter set ID.
-        paramset_desc (varchar(512)): Parameter set description.
-        param_set_hash (uuid): A universally unique identifier for the parameter
-        set.
-        params (longblob): Parameter set for voxel size and voxel units of data
-        to be uploaded.
-    """
-
-    definition = """
-    paramset_idx: smallint
-    ---
-    paramset_desc: varchar(512)
-    param_set_hash: uuid
-    params: longblob
-    """
-
-    @classmethod
-    def insert_new_params(cls, paramset_idx: int, paramset_desc: str, params: dict):
-        """Inserts new parameters into the table.
-
-        Args:
-            paramset_idx (int): Unique parameter set ID
-            paramset_desc (str): Parameter set description
-            params (dict): Voxel size and voxel unit parameters for the upload.
-        """
-
-        params_dict = {
-            "paramset_idx": paramset_idx,
-            "paramset_desc": paramset_desc,
-            "params": params,
-            "param_set_hash": dict_to_uuid(params),
-        }
-        param_query = cls & {"param_set_hash": params_dict["param_set_hash"]}
-
-        if param_query:
-            existing_paramset_idx = param_query.fetch1("paramset_idx")
-            if existing_paramset_idx == paramset_idx:
-                return
-            else:
-                raise dj.DataJointError(
-                    f"The specified param-set already exists"
-                    f" - with paramset_idx: {existing_paramset_idx}"
-                )
-        else:
-            if {"paramset_idx": paramset_idx} in cls.proj():
-                raise dj.DataJointError(
-                    f"The specified paramset_idx {paramset_idx} already exists,"
-                    f" please pick a different one."
-                )
-            cls.insert1(params_dict)
-
-
-@schema
 class VolumeUploadTask(dj.Manual):
     """A pairing of Volume data to be uploaded and parameter set to be used for
     the upload.
 
     Attributes:
-        Volume (foreign key): Primary key from `Volume`.
-        UploadParamSet (foreign key): Primary key from `UploadParamSet`.
+        volume.Volume (foreign key): Primary key from `Volume`.
         upload_type (str): One of 'image' (volumetric image) or 'annotation'
         (segmentation data).
         collection_name (varchar(64)): Name of the collection on bossdb.
@@ -135,8 +76,7 @@ class VolumeUploadTask(dj.Manual):
     """
 
     definition = """
-    -> Volume
-    -> UploadParamSet
+    -> volume.Volume
     upload_type='image': enum('image', 'annotation')
     ---
     collection_name: varchar(64)
@@ -174,39 +114,37 @@ class BossDBURLs(dj.Imported):
             + "'}}}"
         )
 
+    @property
+    def key_source(self):
+        """Limit the upload to entries that have voxel sizes defined in the database."""
+        return volume.Volume & volume.VoxelSize
+
     def make(self, key):
-        upload_params = (UploadParamSet & key).fetch1("params")
+        """Upload data to bossdb."""
+
         collection, experiment, channel, upload_type = (VolumeUploadTask & key).fetch1(
             "collection_name", "experiment_name", "channel_name", "upload_type"
         )
 
+        voxel_width, voxel_height, voxel_depth = (volume.VoxelSize & key).fetch1(
+            "width", "height", "depth"
+        )
+
         if upload_type == "image":
-            data_file = get_volume_tif_file(key)
+            data = (volume.Volume & key).fetch1("volume")
             ng_url = self.get_neuroglancer_url(collection, experiment, channel)
 
         elif upload_type == "annotation":
-            from ..volume import SegmentationTask
-
             ng_url = None
-            output_dir = (SegmentationTask & key).fetch1("segmentation_output_dir")
-            if output_dir == "":
-                data_file = sorted(get_volume_root_data_dir()[0].glob("*seg*.npy"))
-            else:
-                data_file = sorted(
-                    find_full_path(get_volume_root_data_dir(), output_dir)
-                    .as_posix()
-                    .glob("*seg*.npy")
-                )
+            data = (volume.Segmentation.Mask & key).fetch()
 
         boss_url = f"bossdb://{collection}/{experiment}/{channel}"
-        voxel_size = upload_params.get("voxel_size")
-        voxel_units = upload_params.get("voxel_units")
         BossDBUpload(
             url=boss_url,
-            data_dir=data_file,
+            volume_data=data,
             data_description=upload_type,
-            voxel_size=voxel_size,
-            voxel_units=voxel_units,
+            voxel_size=(voxel_depth, voxel_height, voxel_width),
+            voxel_units="millimeters",
         ).upload()
 
         self.insert1(

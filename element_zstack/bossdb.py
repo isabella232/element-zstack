@@ -37,11 +37,6 @@ def activate(
     Tables:
         Scan: A parent table to Volume
         Channel: A parent table to Volume
-    Functions:
-        get_volume_root_data_dir: Returns absolute path for root data director(y/ies) with
-            all volumetric data, as a list of string(s).
-        get_volume_tif_file: When given a scan key (dict), returns the full path to the
-            TIF file of the volumetric data associated with a given scan.
     """
 
     if isinstance(linking_module, str):

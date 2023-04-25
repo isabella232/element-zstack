@@ -5,7 +5,6 @@ import logging
 import datajoint as dj
 from element_interface.utils import dict_to_uuid, find_full_path
 from element_zstack import volume
-from element_zstack.volume import get_volume_root_data_dir, get_volume_tif_file
 
 from .export.bossdb_interface import BossDBUpload
 

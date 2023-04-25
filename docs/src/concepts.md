@@ -89,7 +89,8 @@ created upload utilities within this Element.
 | Table | Description |
 | --- | --- |
 | Volume | Details about the volumetric microscopic imaging scans |
-| SegmentationParamset | All parameters for segmenting volumetric scans |
+| VoxelSize | Details of voxel sizes of each volume in the database |
+| SegmentationParamSet | All parameters for segmenting volumetric scans |
 | SegmentationTask | Task defined by a combination of Volume and SegmentationParamset |
 | Segmentation | Results of the segmentation |
 | Segmentation.Mask | Masks identified in the segmentation procedure |
@@ -104,6 +105,13 @@ created upload utilities within this Element.
 | VolumeMatch.Transformation | Transformation matrix of the volume matching |
 | VolumeMatch.CommonMask | Common mask identified in the volume matching procedure |
 | VolumeMatch.VolumeMask | Volume mask identified in the volume matching procedure |
+
+### `bossdb` schema ([API docs](https://datajoint.com/docs/elements/element-zstack/api/element_zstack/volume))
+
+| Table | Description |
+| --- | --- |
+| VolumeUploadTask | Task defined by Volume and attributes for the BossDB resources |
+| BossDBURLs | Upload raw volumetric or segmentation data to BossDB and generate a neuroglancer URL |
 
 ## Roadmap
 

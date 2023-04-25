@@ -132,7 +132,17 @@ class Volume(dj.Imported):
         )
 
 
+@schema
 class VoxelSize(dj.Manual):
+    """Voxel size information about a volume in millimeters.
+
+    Attributes:
+        Volume (foreign key): Primary key from `volume.Volume`.
+        width (float): Voxel size in mm in the x dimension.
+        height (float): Voxel size in mm in the y dimension.
+        depth (float): Voxel size in mm in the z dimension.
+    """
+
     definition = """
     -> Volume
     ---
@@ -240,7 +250,7 @@ class SegmentationTask(dj.Manual):
 
     definition = """
     -> Volume
-    -> SegmentationParamset
+    -> SegmentationParamSet
     ---
     segmentation_output_dir='': varchar(255)  #  Output directory of the segmented results relative to root data directory
     task_mode='load': enum('load', 'trigger')
@@ -291,7 +301,7 @@ class Segmentation(dj.Computed):
         """
 
     def make(self, key):
-        """Populate the Segmentation with results parsed from analysis outputs."""
+        """Populate the Segmentation and Mask tables with results of cellpose segmentation."""
 
         # NOTE: convert seg data to unit16 instead of uint64
         task_mode, seg_method, output_dir, params = (

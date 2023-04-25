@@ -4,14 +4,17 @@ DataJoint Element for volumetric data segmentation with Cellpose and cell matchi
 collectively standardize and automate data collection and analysis for neuroscience
 experiments. Each Element is a modular pipeline for data storage and processing with
 corresponding database tables that can be combined with other Elements to assemble a
-fully functional pipeline. This Element is comprised of the `volume` and
-`volume_matching` schemas. 
+fully functional pipeline. This Element is comprised of the `volume`,
+`volume_matching`, and `bossdb` schemas. 
 
 - `volume`: features a DataJoint pipeline design for volumetric neuroimaging data, including
   segmentation and connectomics.
 
 - `volume_matching`: features a DataJoint pipeline design for cell matching
   across sessions.
+
+- `bossdb`: features a DataJoint interface for uploading data to [BossDB](https://bossdb.org/) and
+  creates and stores the URL to the neuroglancer volumetric visualization tool.
 
 Visit the [Concepts page](./concepts.md) for more information about the use
 cases of the schemas and an explanantion of the tables. To get started with

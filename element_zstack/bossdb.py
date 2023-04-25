@@ -35,8 +35,8 @@ def activate(
 
     Dependencies:
     Tables:
-        Scan: A parent table to Volume
-        Channel: A parent table to Volume
+        volume.Volume: A parent table to VolumeUploadTask
+        volume.VoxelSize: A dependency of BossDBURLs
     """
 
     if isinstance(linking_module, str):

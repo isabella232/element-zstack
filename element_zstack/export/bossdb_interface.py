@@ -22,7 +22,7 @@ class BossDBUpload:
     def __init__(
         self,
         url: str,
-        volume_data: np.ndarray,  # Local absolute path
+        volume_data: np.ndarray,  # Numpy array of the volumetric data
         data_description: str,
         voxel_size: Tuple[int, int, int],  # voxel size in ZYX order
         voxel_units: str,  # The size units of a voxel
@@ -78,6 +78,7 @@ class BossDBUpload:
 
     def upload(self):
         """Upload data to bossdb."""
+        z_max = self._shape_zyx[0]
         boss_dataset = array(
             self._url,
             extents=self._shape_zyx,
@@ -85,7 +86,7 @@ class BossDBUpload:
             voxel_size=self._voxel_size,
             voxel_unit=self._voxel_units,
         )
-        for i in tqdm(range(0, self._shape_zyx[0], self._upload_increment)):
+        for i in tqdm(range(0, z_max, self._upload_increment)):
             if i + self._upload_increment > self._shape_zyx[0]:
                 # We're at the end of the stack, so upload the remaining images.
                 images = self._volume_data[i : self._shape_zyx[0], :, :]
@@ -106,7 +107,7 @@ class BossDBUpload:
                         print("Retrying...")
                         continue
             else:
-                images = self._volume_data[i : i + self._upload_increment]
+                images = self._volume_data[i : i + self._upload_increment, :, :]
                 retry_count = 0
                 while True:
                     try:

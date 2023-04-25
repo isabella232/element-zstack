@@ -3,6 +3,7 @@ import inspect
 import logging
 
 import datajoint as dj
+import numpy as np
 from element_zstack import volume
 
 from .export.bossdb_interface import BossDBUpload
@@ -129,7 +130,18 @@ class BossDBURLs(dj.Imported):
 
         elif upload_type == "annotation":
             ng_url = None
-            data = (volume.Segmentation.Mask & key).fetch()
+            z_size, y_size, x_size = (volume.Volume & scan_key).fetch1(
+                "px_depth", "px_height", "px_width"
+            )
+            data = np.zeros((z_size, y_size, x_size))
+
+            mask_ids, x_mask_pix, y_mask_pix, z_mask_pix = (
+                volume.Segmentation & key
+            ).fetch("mask", "mask_xpix", "mask_ypix", "mask_zpix")
+
+            for idx, mask in enumerate(mask_ids):
+                data[np.s_[z_mask_pix[idx], y_mask_pix[idx], x_mask_pix[idx]]] = mask
+            data = data.astype("uint64")
 
         boss_url = f"bossdb://{collection}/{experiment}/{channel}"
         BossDBUpload(

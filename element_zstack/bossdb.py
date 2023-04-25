@@ -25,7 +25,7 @@ def activate(
     """Activate this schema
 
     Args:
-        schema_name (str): schema name on the database server to activate the `lab` element
+        schema_name (str): schema name on the database server to activate the `bossdb` schema
         create_schema (bool): when True (default), create schema in the database if it
                             does not yet exist.
         create_tables (bool): when True (default), create schema tables in the database

@@ -107,7 +107,7 @@ class BossDBUpload:
                         print("Retrying...")
                         continue
             else:
-                images = self._volume_data[i : i + self._upload_increment, :, :]
+                images = self._volume_data[i : i + self._upload_increment]
                 retry_count = 0
                 while True:
                     try:

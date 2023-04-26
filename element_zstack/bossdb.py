@@ -111,7 +111,7 @@ class BossDBURLs(dj.Imported):
     @property
     def key_source(self):
         """Limit the upload to entries that have voxel sizes defined in the database."""
-        return volume.Volume & volume.VoxelSize
+        return VolumeUploadTask & volume.VoxelSize
 
     def make(self, key):
         """Upload data to bossdb."""
@@ -129,14 +129,14 @@ class BossDBURLs(dj.Imported):
             ng_url = self.get_neuroglancer_url(collection, experiment, channel)
 
         elif upload_type == "annotation":
-            ng_url = None
-            z_size, y_size, x_size = (volume.Volume & scan_key).fetch1(
+            ng_url = self.get_neuroglancer_url(collection, experiment, channel)
+            z_size, y_size, x_size = (volume.Volume & key).fetch1(
                 "px_depth", "px_height", "px_width"
             )
             data = np.zeros((z_size, y_size, x_size))
 
             mask_ids, x_mask_pix, y_mask_pix, z_mask_pix = (
-                volume.Segmentation & key
+                volume.Segmentation.Mask & key
             ).fetch("mask", "mask_xpix", "mask_ypix", "mask_zpix")
 
             for idx, mask in enumerate(mask_ids):

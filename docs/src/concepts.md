@@ -13,7 +13,7 @@ Storage Service and Database (BossDB).
 
 ## Key Partnerships
 
-Over the years, many labs have developed DataJoint-based pipelines for volumetric
+Many labs have developed DataJoint-based pipelines for volumetric
 data. The DataJoint team interviewed and collaborated with these teams to
 understand their experiment workflow, associated tools, and interfaces. These teams
 include:

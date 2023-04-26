@@ -34,9 +34,7 @@ def activate(
 
 @schema
 class VolumeMatchTask(dj.Manual):
-    """Table defining a volume matching task.
-
-    This table defines a volume matching processing task. The task defined here
+    """Table defining a volume matching task. The task defined here
     is then run in the downstream table `VolumeMatch`.
 
     Attributes:

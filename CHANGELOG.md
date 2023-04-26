@@ -5,6 +5,9 @@ Observes [Semantic Versioning](https://semver.org/spec/v2.0.0.html) standard and
 
 ## [0.1.0] - Unreleased
 
-+ Add - `zstack` schema
++ Add - `volume` schema
++ Add - `volume_matching` schema
++ Add - `bossdb` schema
++ Add - Upload utilty to create resources and upload data to BossDB
 
 [0.1.0]: https://github.com/datajoint/element-zstack/releases/tag/0.1.0

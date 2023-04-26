@@ -2,14 +2,14 @@
 
 Volumetric calcium imaging is a relatively new technique in neuroscience but advances in
 computational capabilities have facilitated a rapid rise in its development and
-use. As more labs use volumetric calcium imaging to
+use. As more labs use volumetric fluorescent microscopy to
 understand the brain, standardization of annotations and raw data storage have
 emerged as some of the greatest challenges in the field. 
 
 This element consists of a pipeline to perform volume matching across sessions
-and cell segmentation using `cellpose` for volumetric microscopic calcium imaging data, and an
-interface to easily upload the results and raw data to the Brain Observatory
-Storage Service and Database (BossDB).
+and cell segmentation using `cellpose` for volumetric fluorescent microscopy data, and an
+interface to easily upload the results and raw data to the [Brain Observatory
+Storage Service and Database (BossDB)](https://bossdb.org/).
 
 ## Key Partnerships
 
@@ -29,7 +29,7 @@ https://github.com/datajoint/element-zstack.
 
 Major features of Element ZStack include:
 
-- Ingest metadata for a stitched volumetric microscopic calcium-imaging data
+- Ingest metadata for a stitched volumetric microscopy data
   file.
 - Volume matching for tracking volume data across multiple acquisition sessions.
 - Perform segmentation using on volumetric data using cellpose. 

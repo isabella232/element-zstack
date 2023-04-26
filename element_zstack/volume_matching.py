@@ -38,7 +38,7 @@ class VolumeMatchTask(dj.Manual):
     is then run in the downstream table `VolumeMatch`.
 
     Attributes:
-        volume_match_task (foreign key): uuid hash for the volume matching task
+        volume_match_task (uuid): UUID hash for the volume matching task
     """
 
     definition = """  # 

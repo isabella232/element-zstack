@@ -34,8 +34,7 @@ def activate(
 
 @schema
 class VolumeMatchTask(dj.Manual):
-    """Table defining a volume matching task. The task defined here
-    is then run in the downstream table `VolumeMatch`.
+    """Defines the volumes and segmentations that will be registered in the downstream `VolumeMatch` table.
 
     Attributes:
         volume_match_task (uuid): UUID hash for the volume matching task
@@ -46,7 +45,7 @@ class VolumeMatchTask(dj.Manual):
     """
 
     class Volume(dj.Part):
-        """Table defining a volumetric image to be matched in the downsteam `VolumeMatch` table.
+        """Defines the volume segmentations that will be registered in the downstream `VolumeMatch` table.
 
         Attributes:
             VolumeMatchTask (foreign key): Primary key from `VolumeMatchTask`.
@@ -60,7 +59,7 @@ class VolumeMatchTask(dj.Manual):
 
     @classmethod
     def insert1(cls, vol_seg_keys, **kwargs):
-        """Insert an entry for volume matching task.
+        """Insert an entry into the `VolumeMatchTask` and `VolumeMatchTask.Volume` tables.
 
         Args:
             vol_seg_keys (tuple): a tuple of two cell-segmented volumes
@@ -124,10 +123,10 @@ class VolumeMatch(dj.Computed):
         """
 
     class CommonMask(dj.Part):
-        """Store common mask ID.
+        """Store common mask identifier.
 
         Attributes:
-            common_mask (smallint): Integer value for the common mask ID.
+            common_mask (smallint): Integer value for the common mask identifier.
         """
 
         definition = """
@@ -135,16 +134,16 @@ class VolumeMatch(dj.Computed):
         """
 
     class VolumeMask(dj.Part):
-        """Store volume mask information.
+        """For the masks in the common space, store the associated mask in the segmented volumes, and the confidence of the volume registration and cell matching.
 
         Attributes:
-            master.CommonMask (foreign key): Primary key from
+            VolumeMatch.CommonMask (foreign key): Primary key from
             `VolumeMatch.CommonMask`.
             VolumeMatchTask.Volume (foreign key): Primary key from
             `VolumeMatchTask.Volume`.
             volume.Segmentation.Mask (foreign key): Primary key from
             `volume.Segmentation.Mask`.
-            confidence (float): confidence level of the volume mask.
+            confidence (float): confidence in the volume registration and cell matching between the segmented volumes.
         """
 
         definition = """

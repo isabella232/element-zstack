@@ -99,7 +99,7 @@ class Volume(dj.Imported):
         px_width (int): total number of voxels in the x dimension.
         px_height (int): total number of voxels in the y dimension.
         px_depth (int): total number of voxels in the z dimension.
-        depth_mean_brightness (longblob): mean brightness of each slice across
+        depth_mean_brightness (longblob): optional, mean brightness of each slice across
         the depth (z) dimension of the stack.
         volume (longblob): volumetric data - np.ndarray with shape (z, y, x) and
         dtype('uint8').
@@ -118,7 +118,7 @@ class Volume(dj.Imported):
     def make(self, key):
         """Populate the Volume table with volumetric microscopic imaging data."""
         vol_tif_fp = get_volume_tif_file(key)
-        volume_data = TiffFile(vol_tif_fp[0]).asarray()
+        volume_data = TiffFile(vol_tif_fp).asarray()
 
         self.insert1(
             dict(
@@ -137,7 +137,7 @@ class VoxelSize(dj.Manual):
     """Voxel size information about a volume in millimeters.
 
     Attributes:
-        Volume (foreign key): Primary key from `volume.Volume`.
+        Volume (foreign key): Primary key from `Volume`.
         width (float): Voxel size in mm in the x dimension.
         height (float): Voxel size in mm in the y dimension.
         depth (float): Voxel size in mm in the z dimension.
@@ -158,13 +158,13 @@ class SegmentationParamSet(dj.Lookup):
     data.
 
     Attributes:
-        paramset_idx (int): Unique parameter set ID.
+        paramset_idx (int): Unique parameter set identifier.
         segmentation_method (str): Name of the segmentation method (e.g.
         cellpose).
-        params (longblob): Parameter Set, a dictionary of all applicable
-        parameters to the analysis suite.
-        paramset_desc (str): Parameter set description.
-        param_set_hash (uuid): A universally unique identifier for the parameter set.
+        paramset_desc (str): Optional. Parameter set description.
+        params (longblob): Parameter set. Dictionary of all applicable
+        parameters for the segmentation method.
+        paramset_hash (uuid): A universally unique identifier for the parameter set.
     """
 
     definition = """
@@ -231,21 +231,15 @@ class SegmentationParamSet(dj.Lookup):
 
 @schema
 class SegmentationTask(dj.Manual):
-    """A pairing of the segmentation parameters and volumes to be loaded to
-    triggered.
-
-    This table defines a segmentation task for volumetric microscopic imaging
-    data. The task defined here is run in the downstream table `Segmentation`.
-    This table currently only supports triggering segmentation via cellpose.
+    """Defines the method and parameter set which will be used to segment a volume in the downstream `Segmentation` table.  This table currently supports triggering segmentation with `cellpose`.
 
     Attributes:
         Volume (foreign key): Primary key from `Volume`.
-        SegmentationParamset (foreign key): Primary key from
-        `SegmentationParamset`.
-        segmentation_output_dir (varchar(255)): Output directory of the
+        SegmentationParamSet (foreign key): Primary key from
+        `SegmentationParamSet`.
+        segmentation_output_dir (str): Optional. Output directory of the
         segmented results relative to the root data directory.
-        task_mode (str): One of 'load' (load computed analysis results) or
-        'trigger' (trigger computation).
+        task_mode (enum): `Trigger` computes segmentation or `load` imports existing results.
     """
 
     definition = """
@@ -259,11 +253,10 @@ class SegmentationTask(dj.Manual):
 
 @schema
 class Segmentation(dj.Computed):
-    """Perform the computation of an entry (task) defined in the
-    SegmentationTask table.
+    """Performs segmentation on the volume (and with the method and parameter set) defined in the `SegmentationTask` table.
 
     Attributes:
-        SegmentationTask (foreign key): Primary key from SegmentationTask.
+        SegmentationTask (foreign key): Primary key from `SegmentationTask`.
     """
 
     definition = """
@@ -271,19 +264,19 @@ class Segmentation(dj.Computed):
     """
 
     class Mask(dj.Part):
-        """Details of the masks identified from the Segmentation procedure.
+        """Details of the masks identified from the segmentation.
 
         Attributes:
-            Segmentation (foreign key): Primary key from Segmentation.
-            mask (int): Unique mask ID.
-            mask_npix (int): Number of pixels in ROIs.
-            mask_center_x (float): Center x coordinate in pixel.
-            mask_center_y (float): Center y coordinate in pixel.
-            mask_center_z (float): Center z coordinate in pixel.
+            Segmentation (foreign key): Primary key from `Segmentation`.
+            mask (int): Unique mask identifier.
+            mask_npix (int): Number of pixels in the mask.
+            mask_center_x (float): Center x coordinate in pixels.
+            mask_center_y (float): Center y coordinate in pixels.
+            mask_center_z (float): Center z coordinate in pixels.
             mask_xpix (longblob): X coordinates in pixels.
             mask_ypix (longblob): Y coordinates in pixels.
             mask_zpix (longblob): Z coordinates in pixels.
-            mask_weights (longblob): Weights of the mask at the indicies above.
+            mask_weights (longblob): Weights of the mask at the indices above.
         """
 
         definition = """ # A mask produced by segmentation.
@@ -301,7 +294,7 @@ class Segmentation(dj.Computed):
         """
 
     def make(self, key):
-        """Populate the Segmentation and Mask tables with results of cellpose segmentation."""
+        """Populate the Segmentation and Segmentation.Mask tables with results of cellpose segmentation."""
 
         # NOTE: convert seg data to unit16 instead of uint64
         task_mode, seg_method, output_dir, params = (

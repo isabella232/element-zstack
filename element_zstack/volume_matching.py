@@ -106,7 +106,7 @@ class VolumeMatch(dj.Computed):
     """
 
     class Transformation(dj.Part):
-        """Store transformation matrix data.
+        """Store the transformation matrix to the common space.
 
         Attributes:
             VolumeMatch (foreign key): Primary key from `VolumeMatch`.

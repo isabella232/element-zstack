@@ -57,8 +57,7 @@ def activate(
 
 @schema
 class VolumeUploadTask(dj.Manual):
-    """A pairing of Volume data to be uploaded and parameter set to be used for
-    the upload.
+    """Define the image and segmentation data to upload to BossDB.
 
     Attributes:
         volume.Volume (foreign key): Primary key from `Volume`.
@@ -81,8 +80,8 @@ class VolumeUploadTask(dj.Manual):
 
 
 @schema
-class BossDBURLs(dj.Imported):
-    """Uploads data to bossdb and stores the BossDB and Neuroglancer URLs.
+class VolumeUpload(dj.Computed):
+    """Upload image and segmentation data to BossDB, and store the BossDB and Neuroglancer URLs.
 
     Attributes:
         VolumeUploadTask (foreign key): Primary key from `VolumeUploadTask`.

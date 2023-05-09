@@ -57,16 +57,15 @@ def activate(
 
 @schema
 class VolumeUploadTask(dj.Manual):
-    """A pairing of Volume data to be uploaded and parameter set to be used for
-    the upload.
+    """Define the image and segmentation data to upload to BossDB.
 
     Attributes:
         volume.Volume (foreign key): Primary key from `Volume`.
         upload_type (enum): One of 'image' (volumetric image) or 'annotation'
         (segmentation data).
-        collection_name (varchar(64)): Name of the collection on bossdb.
-        experiment_name (varchar(64)): Name of the experiment on bossdb.
-        channel_name (varchar(64)): Name of the channel on bossdb.
+        collection_name (varchar(64)): Name of the collection on BossDB.
+        experiment_name (varchar(64)): Name of the experiment on BossDB.
+        channel_name (varchar(64)): Name of the channel on BossDB.
     """
 
     definition = """
@@ -81,13 +80,13 @@ class VolumeUploadTask(dj.Manual):
 
 
 @schema
-class BossDBURLs(dj.Imported):
-    """Uploads data to bossdb and stores the bossdb and neuroglancer URLs.
+class VolumeUpload(dj.Computed):
+    """Upload image and segmentation data to BossDB, and store the BossDB and Neuroglancer URLs.
 
     Attributes:
         VolumeUploadTask (foreign key): Primary key from `VolumeUploadTask`.
-        bossdb_url (varchar(512)): bossdb URL for the uploaded data.
-        neuroglancer_url (varchar(1024)): neuroglancer URL for the uploaded data.
+        bossdb_url (varchar(512)): BossDB URL for the uploaded data.
+        neuroglancer_url (varchar(1024)): Neuroglancer URL for the uploaded data.
     """
 
     definition = """
@@ -110,7 +109,6 @@ class BossDBURLs(dj.Imported):
             + "'}}}"
         )
 
-
     def make(self, key):
         """Upload data to bossdb."""
 
@@ -124,10 +122,14 @@ class BossDBURLs(dj.Imported):
 
         if upload_type == "image":
             data = (volume.Volume & key).fetch1("volume")
-            neuroglancer_url = self.get_neuroglancer_url(collection, experiment, channel)
+            neuroglancer_url = self.get_neuroglancer_url(
+                collection, experiment, channel
+            )
 
         elif upload_type == "annotation":
-            neuroglancer_url = self.get_neuroglancer_url(collection, experiment, channel)
+            neuroglancer_url = self.get_neuroglancer_url(
+                collection, experiment, channel
+            )
             z_size, y_size, x_size = (volume.Volume & key).fetch1(
                 "px_depth", "px_height", "px_width"
             )
@@ -154,6 +156,8 @@ class BossDBURLs(dj.Imported):
             dict(
                 key,
                 bossdb_url=boss_url,
-                neuroglancer_url=neuroglancer_url if neuroglancer_url is not None else "null",
+                neuroglancer_url=neuroglancer_url
+                if neuroglancer_url is not None
+                else "null",
             )
         )

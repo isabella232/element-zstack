@@ -1,17 +1,14 @@
 # Tutorials
 
-## Installation
++ DataJoint Elements are modular pipelines that can be connected into a complete workflow.  [Workflow Zstack](https://github.com/datajoint/workflow-zstack)) is an example that combines five DataJoint Elements - Lab, Animal, Session, Calcium Imaging, and ZStack.
 
-Installation of the Element requires an integrated development environment and database.
-Instructions to setup each of the components can be found on the
-[User Instructions](https://datajoint.com/docs/elements/user-guide/) page. These
-instructions use the example
-[workflow for Element Zstack](https://github.com/datajoint/workflow-zstack),
-which can be modified for a user's specific experimental requirements. This example
-workflow uses four Elements (Lab, Animal, Session, Calcium Imaging, and Zstack) to construct a
-complete pipeline, and is able to ingest experimental metadata and process
-volumetric microscopic calcium imaging scans.
++ Workflow ZStack includes an [interactive tutorial on GitHub Codespaces](https://github.com/datajoint/workflow-zstack#interactive-tutorial), which is configured for users to run the pipeline.
 
-## Notebooks
++ In the interactive tutorial, the [example notebook](https://github.com/datajoint/workflow-zstack/tree/main/notebooks/tutorial.ipynb) describes the pipeline and provides instructions for running the pipeline.
 
-....
+## Installation Instructions for Active Projects
+
++ The Workflow ZStack described above can be modified for a user's specific experimental requirements and thereby used in active projects.
+
++ The GitHub Codespace and Dev Container is configured for tutorials and prototyping.  
+We recommend users to configure a database specifically for production pipelines.  Instructions for a local installation of the integrated development environment with a database can be found on the [User Guide](https://datajoint.com/docs/elements/user-guide/) page.

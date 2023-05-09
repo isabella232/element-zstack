@@ -92,7 +92,7 @@ def get_volume_tif_file(scan_key: dict) -> (str, Path):
 
 @schema
 class Volume(dj.Imported):
-    """Details about the volumetric microscopic imaging data.
+    """Details about the volumetric microscopic imaging scans.
 
     Attributes:
         Scan (foreign key): Primary key from `imaging.Scan`.
@@ -155,7 +155,7 @@ class VoxelSize(dj.Manual):
 @schema
 class SegmentationParamSet(dj.Lookup):
     """Parameter set used for segmentation of the volumetric microscopic imaging
-    data.
+    scan.
 
     Attributes:
         paramset_idx (int): Unique parameter set identifier.

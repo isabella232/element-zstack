@@ -1,21 +1,32 @@
 # Element ZStack
 
-DataJoint Element for volumetric data segmentation with Cellpose and cell matching across sessions. DataJoint Elements
-collectively standardize and automate data collection and analysis for neuroscience
-experiments. Each Element is a modular pipeline for data storage and processing with
-corresponding database tables that can be combined with other Elements to assemble a
-fully functional pipeline. This Element is comprised of the `volume`,
-`volume_matching`, and `bossdb` schemas. 
+DataJoint Element for z-stack (volumetric) imaging, features cell segmentation with 
+[cellpose](https://github.com/MouseLand/cellpose){:target="_blank"}, data upload to 
+[BossDB](https://bossdb.org/){:target="_blank"}, and data visualization with 
+[Neuroglancer](https://github.com/google/neuroglancer){:target="_blank"}. DataJoint 
+Elements collectively standardize and automate data collection and analysis for 
+neuroscience experiments. Each Element is a modular pipeline for data storage and 
+processing with corresponding database tables that can be combined with other Elements 
+to assemble a fully functional pipeline.
 
-- `volume`: features a DataJoint pipeline design for volumetric neuroimaging data, including
-  segmentation and connectomics.
+## Experiment Flowchart
 
-- `volume_matching`: features a DataJoint pipeline design for cell matching
-  across sessions.
+![flowchart](https://raw.githubusercontent.com/datajoint/element-zstack/main/images/flowchart.svg)
 
-- `bossdb`: features a DataJoint interface for uploading data to [BossDB](https://bossdb.org/) and
-  creates and stores the URL to the neuroglancer volumetric visualization tool.
+## Data Pipeline Diagram
 
-Visit the [Concepts page](./concepts.md) for more information about the use
-cases of the schemas and an explanantion of the tables. To get started with
-building your own data pipeline, visit the [Tutorials](./tutorials/index.md) page.
+![pipeline](https://raw.githubusercontent.com/datajoint/element-zstack/main/images/pipeline.svg)
+
+## Getting Started
+
++ Install from PyPI
+
+     ```bash
+     pip install element-zstack
+     ```
+
++ [Data Pipeline](./pipeline.md) - Pipeline and table descriptions
+
++ [Tutorials](./tutorials/index.md) - Start building your data pipeline
+
++ [Code Repository](https://github.com/datajoint/element-zstack/){:target="_blank"}

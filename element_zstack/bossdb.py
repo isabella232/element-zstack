@@ -4,7 +4,7 @@ import logging
 
 import datajoint as dj
 import numpy as np
-from element_zstack import volume
+from . import volume
 
 from .export.bossdb_interface import BossDBUpload
 
@@ -62,7 +62,7 @@ class VolumeUploadTask(dj.Manual):
 
     Attributes:
         volume.Volume (foreign key): Primary key from `Volume`.
-        upload_type (str): One of 'image' (volumetric image) or 'annotation'
+        upload_type (enum): One of 'image' (volumetric image) or 'annotation'
         (segmentation data).
         collection_name (varchar(64)): Name of the collection on bossdb.
         experiment_name (varchar(64)): Name of the experiment on bossdb.
@@ -71,6 +71,7 @@ class VolumeUploadTask(dj.Manual):
 
     definition = """
     -> volume.Volume
+    -> volume.Segmentation
     upload_type='image': enum('image', 'annotation')
     ---
     collection_name: varchar(64)
@@ -91,6 +92,7 @@ class BossDBURLs(dj.Imported):
 
     definition = """
     -> VolumeUploadTask
+    -> volume.VoxelSize
     ---
     bossdb_url: varchar(512)
     neuroglancer_url='': varchar(1024)
@@ -108,10 +110,6 @@ class BossDBURLs(dj.Imported):
             + "'}}}"
         )
 
-    @property
-    def key_source(self):
-        """Limit the upload to entries that have voxel sizes defined in the database."""
-        return VolumeUploadTask & volume.VoxelSize
 
     def make(self, key):
         """Upload data to bossdb."""
@@ -126,10 +124,10 @@ class BossDBURLs(dj.Imported):
 
         if upload_type == "image":
             data = (volume.Volume & key).fetch1("volume")
-            ng_url = self.get_neuroglancer_url(collection, experiment, channel)
+            neuroglancer_url = self.get_neuroglancer_url(collection, experiment, channel)
 
         elif upload_type == "annotation":
-            ng_url = self.get_neuroglancer_url(collection, experiment, channel)
+            neuroglancer_url = self.get_neuroglancer_url(collection, experiment, channel)
             z_size, y_size, x_size = (volume.Volume & key).fetch1(
                 "px_depth", "px_height", "px_width"
             )
@@ -156,6 +154,6 @@ class BossDBURLs(dj.Imported):
             dict(
                 key,
                 bossdb_url=boss_url,
-                neuroglancer_url=ng_url if ng_url is not None else "null",
+                neuroglancer_url=neuroglancer_url if neuroglancer_url is not None else "null",
             )
         )

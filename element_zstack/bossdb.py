@@ -60,18 +60,14 @@ class VolumeUploadTask(dj.Manual):
     """Define the image and segmentation data to upload to BossDB.
 
     Attributes:
-        volume.Volume (foreign key): Primary key from `Volume`.
-        upload_type (enum): One of 'image' (volumetric image) or 'annotation'
-        (segmentation data).
+        volume.Segmentation (foreign key): Primary key from `volume.Segmentation`.
         collection_name (varchar(64)): Name of the collection on BossDB.
         experiment_name (varchar(64)): Name of the experiment on BossDB.
         channel_name (varchar(64)): Name of the channel on BossDB.
     """
 
     definition = """
-    -> volume.Volume
     -> volume.Segmentation
-    upload_type='image': enum('image', 'annotation')
     ---
     collection_name: varchar(64)
     experiment_name: varchar(64)
@@ -85,17 +81,31 @@ class VolumeUpload(dj.Computed):
 
     Attributes:
         VolumeUploadTask (foreign key): Primary key from `VolumeUploadTask`.
-        bossdb_url (varchar(512)): BossDB URL for the uploaded data.
-        neuroglancer_url (varchar(1024)): Neuroglancer URL for the uploaded data.
+        volume.VoxelSize (foreign key): Primary key from `volume.VoxelSize`.
     """
 
     definition = """
     -> VolumeUploadTask
-    -> volume.VoxelSize
     ---
-    bossdb_url: varchar(512)
-    neuroglancer_url='': varchar(1024)
+    -> volume.VoxelSize
     """
+
+    class WebAddress(dj.Part):
+        """
+        Attributes:
+            VolumeUpload (foreign key): Primary key from `VolumeUpload`.
+            upload_type (enum): 'image' (volumetric image), 'annotation' (segmentation data), or 'image+annotation' (segmentation overlayed on image).
+            web_address_type (enum): 'bossdb' or 'neuroglancer'.
+            web_address (str): URL for the data or visualization website.
+        """
+
+        definition = """
+        -> master
+        upload_type='image': enum('image', 'annotation', 'image+annotation')
+        web_address_type='bossdb': enum('bossdb', 'neuroglancer')
+        ---
+        web_address: varchar(2048)
+        """
 
     def get_neuroglancer_url(self, collection, experiment, channel):
         base_url = f"boss://https://api.bossdb.io/{collection}/{experiment}/{channel}"

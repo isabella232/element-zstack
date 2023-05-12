@@ -17,6 +17,15 @@ to assemble a fully functional pipeline.
 
 ![pipeline](https://raw.githubusercontent.com/datajoint/element-zstack/main/images/pipeline.svg)
 
+## Example Data on BossDB
+
+![Bossdb
+Data](https://github.com/datajoint/element-zstack/blob/main/images/BossDB_screenshot.png)
+
+## Example Visualization on Neuroglancer
+
+![Neuroglancer Visualization](https://github.com/datajoint/element-zstack/blob/main/images/Neuroglancer_screenshot.png)
+
 ## Getting Started
 
 + Install from PyPI

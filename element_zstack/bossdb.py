@@ -107,67 +107,143 @@ class VolumeUpload(dj.Computed):
         web_address: varchar(2048)
         """
 
-    def get_neuroglancer_url(self, collection, experiment, channel):
+    def get_neuroglancer_url(self, upload_type, collection, experiment, channel):
         base_url = f"boss://https://api.bossdb.io/{collection}/{experiment}/{channel}"
-        return (
-            "https://neuroglancer.bossdb.io/#!{'layers':{'"
-            + f"{experiment}"
-            + "':{'source':'"
-            + base_url
-            + "','name':'"
-            + f"{channel}"
-            + "'}}}"
-        )
+        if upload_type == "image":
+            return "https://neuroglancer.bossdb.io/#!" + str(
+                {
+                    "layers": {
+                        "type": f"{type}",
+                        "source": base_url,
+                        "tab": "source",
+                        "name": f"{experiment}",
+                    }
+                }
+            )
+        elif upload_type == "annotation":
+            return "https://neuroglancer.bossdb.io/#!" + str(
+                {
+                    "layers": {
+                        "type": "segmentation",
+                        "source": base_url + "-seg",
+                        "tab": "annotations",
+                        "name": f"{channel}-seg",
+                    }
+                }
+            )
+        elif upload_type == "image+annotation":
+            return "https://neuroglancer.bossdb.io/#!" + str(
+                {
+                    "layers": [
+                        {
+                            "type": "image",
+                            "source": base_url,
+                            "tab": "source",
+                            "name": f"{experiment}",
+                        },
+                        {
+                            "type": "segmentation",
+                            "source": base_url + "-seg",
+                            "tab": "annotations",
+                            "name": f"{channel}-seg",
+                        },
+                    ]
+                }
+            )
 
     def make(self, key):
         """Upload data to bossdb."""
 
-        collection, experiment, channel, upload_type = (VolumeUploadTask & key).fetch1(
-            "collection_name", "experiment_name", "channel_name", "upload_type"
+        collection, experiment, channel = (VolumeUploadTask & key).fetch1(
+            "collection_name", "experiment_name", "channel_name"
         )
 
         voxel_width, voxel_height, voxel_depth = (volume.VoxelSize & key).fetch1(
             "width", "height", "depth"
         )
 
-        if upload_type == "image":
-            data = (volume.Volume & key).fetch1("volume")
-            neuroglancer_url = self.get_neuroglancer_url(
-                collection, experiment, channel
+        full_data = []
+        description = []
+        boss_url = []
+        neuroglancer_url = []
+
+        full_data.append((volume.Volume & key).fetch1("volume"))
+        description.append("image")
+        boss_url.append(f"bossdb://{collection}/{experiment}/{channel}")
+        neuroglancer_url.append(
+            self.get_neuroglancer_url(
+                upload_type="image",
+                collection=collection,
+                experiment=experiment,
+                channel=channel,
             )
+        )
 
-        elif upload_type == "annotation":
-            neuroglancer_url = self.get_neuroglancer_url(
-                collection, experiment, channel
+        z_size, y_size, x_size = (volume.Volume & key).fetch1(
+            "px_depth", "px_height", "px_width"
+        )
+        segmentation_data = np.zeros((z_size, y_size, x_size))
+
+        mask_ids, x_mask_pix, y_mask_pix, z_mask_pix = (
+            volume.Segmentation.Mask & key
+        ).fetch("mask", "mask_xpix", "mask_ypix", "mask_zpix")
+
+        for idx, mask in enumerate(mask_ids):
+            segmentation_data[
+                np.s_[z_mask_pix[idx], y_mask_pix[idx], x_mask_pix[idx]]
+            ] = mask
+        full_data.append(segmentation_data.astype("uint64"))
+
+        description.append("annotation")
+        boss_url.append(f"bossdb://{collection}/{experiment}/{channel}-seg")
+        neuroglancer_url.append(
+            self.get_neuroglancer_url(
+                upload_type="annotation",
+                collection=collection,
+                experiment=experiment,
+                channel=channel,
             )
-            z_size, y_size, x_size = (volume.Volume & key).fetch1(
-                "px_depth", "px_height", "px_width"
+        )
+
+        for url, data, desc in zip(boss_url, full_data, description):
+            BossDBUpload(
+                url=url,
+                volume_data=data,
+                data_description=desc,
+                voxel_size=(voxel_depth, voxel_height, voxel_width),
+                voxel_units="millimeters",
+            ).upload()
+
+        description.append("image+annotation")
+        neuroglancer_url.append(
+            self.get_neuroglancer_url(
+                upload_type="image+annotation",
+                collection=collection,
+                experiment=experiment,
+                channel=channel,
             )
-            data = np.zeros((z_size, y_size, x_size))
+        )
 
-            mask_ids, x_mask_pix, y_mask_pix, z_mask_pix = (
-                volume.Segmentation.Mask & key
-            ).fetch("mask", "mask_xpix", "mask_ypix", "mask_zpix")
-
-            for idx, mask in enumerate(mask_ids):
-                data[np.s_[z_mask_pix[idx], y_mask_pix[idx], x_mask_pix[idx]]] = mask
-            data = data.astype("uint64")
-
-        boss_url = f"bossdb://{collection}/{experiment}/{channel}"
-        BossDBUpload(
-            url=boss_url,
-            volume_data=data,
-            data_description=upload_type,
-            voxel_size=(voxel_depth, voxel_height, voxel_width),
-            voxel_units="millimeters",
-        ).upload()
-
-        self.insert1(
-            dict(
-                key,
-                bossdb_url=boss_url,
-                neuroglancer_url=neuroglancer_url
-                if neuroglancer_url is not None
-                else "null",
-            )
+        self.insert1(key)
+        self.WebAddress.insert(
+            [
+                dict(
+                    key,
+                    upload_type=desc,
+                    web_address_type="bossdb",
+                    web_address=db_url,
+                )
+                for desc, db_url in list(zip(description, boss_url))
+            ]
+        )
+        self.WebAddress.insert(
+            [
+                dict(
+                    key,
+                    upload_type=desc,
+                    web_address_type="neuroglancer",
+                    web_address=url,
+                )
+                for desc, url in list(zip(description, neuroglancer_url))
+            ]
         )

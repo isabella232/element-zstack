@@ -51,18 +51,18 @@ more detailed documentation on each table, see the API docs for the respective s
 | --- | --- |
 | Volume | Details about the volumetric microscopic images |
 | VoxelSize | Voxel size information about a volume in millimeters |
-| SegmentationParamSet | Parameter set used for segmentation of the volumetric microscopic images |
-| SegmentationTask | Defines the method and parameter set which will be used to segment a volume in the downstream `Segmentation` table |
-| Segmentation | Performs segmentation on the volume (and with the method and parameter set) defined in the `SegmentationTask` table |
+| SegmentationParamSet | Parameters required for segmentation of the volumetric scans |
+| SegmentationTask | Task defined by a combination of Volume and SegmentationParamSet |
+| Segmentation | The core table that executes a SegmentationTask |
 | Segmentation.Mask | Details of the masks identified from the segmentation |
 
 ### `volume_matching` schema ([API docs](https://datajoint.com/docs/elements/element-zstack/latest/api/element_zstack/volume_matching))
 
 | Table | Description |
 | --- | --- |
-| VolumeMatchTask | Defines the volumes and segmentations that will be registered in the downstream `VolumeMatch` table |
+| VolumeMatchTask | Defines the volume matching task |
 | VolumeMatchTask.Volume | Defines the volume segmentations that will be registered in the downstream `VolumeMatch` table |
-| VolumeMatch | Execute the volume matching algorithm and store the results |
+| VolumeMatch | Executes the volume matching algorithm |
 | VolumeMatch.Transformation | Store the transformation matrix to the common space |
 | VolumeMatch.CommonMask | Store common mask identifier |
 | VolumeMatch.VolumeMask | For the masks in the common space, store the associated mask in the segmented volumes, and the confidence of the volume registration and cell matching |
@@ -71,5 +71,6 @@ more detailed documentation on each table, see the API docs for the respective s
 
 | Table | Description |
 | --- | --- |
-| VolumeUploadTask | Define the image and segmentation data to upload to BossDB |
-| VolumeUpload | Upload image and segmentation data to BossDB, and store the BossDB and Neuroglancer URLs |
+| VolumeUploadTask | Names of the collection, experiment, and channel where data will be uploaded to BossDB |
+| VolumeUpload | Uploads image and segmentation data to BossDB |
+| VolumeUpload.WebAddress | Stores the BossDB and Neuroglancer URLs for each upload |

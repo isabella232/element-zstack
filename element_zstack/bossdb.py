@@ -162,22 +162,13 @@ class VolumeUpload(dj.Computed):
             "width", "height", "depth"
         )
 
+        description = ["image", "annotation", "image+annotation"]
         full_data = []
-        description = []
         boss_url = []
         neuroglancer_url = []
 
         full_data.append((volume.Volume & key).fetch1("volume"))
-        description.append("image")
         boss_url.append(f"bossdb://{collection}/{experiment}/{channel}")
-        neuroglancer_url.append(
-            self.get_neuroglancer_url(
-                upload_type="image",
-                collection=collection,
-                experiment=experiment,
-                channel=channel,
-            )
-        )
 
         z_size, y_size, x_size = (volume.Volume & key).fetch1(
             "px_depth", "px_height", "px_width"
@@ -194,16 +185,7 @@ class VolumeUpload(dj.Computed):
             ] = mask
         full_data.append(segmentation_data.astype("uint64"))
 
-        description.append("annotation")
         boss_url.append(f"bossdb://{collection}/{experiment}/{channel}-seg")
-        neuroglancer_url.append(
-            self.get_neuroglancer_url(
-                upload_type="annotation",
-                collection=collection,
-                experiment=experiment,
-                channel=channel,
-            )
-        )
 
         for url, data, desc in zip(boss_url, full_data, description):
             BossDBUpload(
@@ -213,16 +195,6 @@ class VolumeUpload(dj.Computed):
                 voxel_size=(voxel_depth, voxel_height, voxel_width),
                 voxel_units="millimeters",
             ).upload()
-
-        description.append("image+annotation")
-        neuroglancer_url.append(
-            self.get_neuroglancer_url(
-                upload_type="image+annotation",
-                collection=collection,
-                experiment=experiment,
-                channel=channel,
-            )
-        )
 
         self.insert1(key)
         self.WebAddress.insert(
@@ -236,6 +208,11 @@ class VolumeUpload(dj.Computed):
                 for desc, db_url in list(zip(description, boss_url))
             ]
         )
+
+        for desc in description:
+            neuroglancer_url.append(
+                self.get_neuroglancer_url(desc, collection, experiment, channel)
+            )
         self.WebAddress.insert(
             [
                 dict(

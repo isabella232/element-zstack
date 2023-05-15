@@ -1,213 +1,72 @@
-<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="893pt" height="515pt" viewBox="0.00 0.00 893.00 515.00">
-<g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 511)">
-<polygon fill="white" stroke="transparent" points="-4,4 -4,-511 889,-511 889,4 -4,4"/>
-<!-- volume_matching.VolumeMatch.CommonMask -->
-<g id="node1" class="node">
-<title>volume_matching.VolumeMatch.CommonMask</title>
-<g id="a_node1"><a xlink:title="common_mask          ">
-<polygon fill="transparent" stroke="transparent" points="676,-77.5 454,-77.5 454,-58.5 676,-58.5 676,-77.5"/>
-<text text-anchor="start" x="462" y="-66.5" font-family="arial" text-decoration="underline" font-size="10.00">volume_matching.VolumeMatch.CommonMask</text>
-</a>
-</g>
-</g>
-<!-- volume_matching.VolumeMatch.VolumeMask -->
-<g id="node17" class="node">
-<title>volume_matching.VolumeMatch.VolumeMask</title>
-<g id="a_node17"><a xlink:title="→ volume_matching.VolumeMatch.CommonMask→ volume_matching.VolumeMatchTask.Volume------------------------------→ volume.Segmentation.Maskconfidence           ">
-<polygon fill="transparent" stroke="transparent" points="672.5,-19 457.5,-19 457.5,0 672.5,0 672.5,-19"/>
-<text text-anchor="middle" x="565" y="-7" font-family="arial" font-size="10.00">volume_matching.VolumeMatch.VolumeMask</text>
-</a>
-</g>
-</g>
-<!-- volume_matching.VolumeMatch.CommonMask&#45;&gt;volume_matching.VolumeMatch.VolumeMask -->
-<g id="edge1" class="edge">
-<title>volume_matching.VolumeMatch.CommonMask-&gt;volume_matching.VolumeMatch.VolumeMask</title>
-<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M565,-58.17C565,-47.5 565,-29.65 565,-19.08"/>
-</g>
-<!-- volume_matching.VolumeMatchTask -->
-<g id="node2" class="node">
-<title>volume_matching.VolumeMatchTask</title>
-<g id="a_node2"><a xlink:title="volume_match_task    ">
-<polygon fill="#00ff00" fill-opacity="0.188235" stroke="#00ff00" stroke-opacity="0.188235" points="436,-152 224,-152 224,-117 436,-117 436,-152"/>
-<text text-anchor="start" x="232" y="-132.4" font-family="arial" text-decoration="underline" font-size="12.00" fill="darkgreen">volume_matching.VolumeMatchTask</text>
-</a>
-</g>
-</g>
-<!-- volume_matching.VolumeMatchTask.Volume -->
-<g id="node9" class="node">
-<title>volume_matching.VolumeMatchTask.Volume</title>
-<g id="a_node9"><a xlink:title="→ volume_matching.VolumeMatchTask→ volume.Segmentation">
-<polygon fill="transparent" stroke="transparent" points="436,-77.5 224,-77.5 224,-58.5 436,-58.5 436,-77.5"/>
-<text text-anchor="middle" x="330" y="-65.5" font-family="arial" font-size="10.00">volume_matching.VolumeMatchTask.Volume</text>
-</a>
-</g>
-</g>
-<!-- volume_matching.VolumeMatchTask&#45;&gt;volume_matching.VolumeMatchTask.Volume -->
-<g id="edge2" class="edge">
-<title>volume_matching.VolumeMatchTask-&gt;volume_matching.VolumeMatchTask.Volume</title>
-<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M330,-116.89C330,-104.35 330,-87.64 330,-77.64"/>
-</g>
-<!-- volume_matching.VolumeMatch -->
-<g id="node12" class="node">
-<title>volume_matching.VolumeMatch</title>
-<g id="a_node12"><a xlink:title="→ volume_matching.VolumeMatchTask------------------------------execution_time       execution_duration   ">
-<ellipse fill="#ff0000" fill-opacity="0.125490" stroke="#ff0000" stroke-opacity="0.125490" cx="112" cy="-68" rx="13" ry="13"/>
-<text text-anchor="middle" x="112" y="-64.9" font-family="arial" font-size="12.00" fill="#7f0000" fill-opacity="0.627451">volume_matching.VolumeMatch</text>
-</a>
-</g>
-</g>
-<!-- volume_matching.VolumeMatchTask&#45;&gt;volume_matching.VolumeMatch -->
-<g id="edge3" class="edge">
-<title>volume_matching.VolumeMatchTask-&gt;volume_matching.VolumeMatch</title>
-<path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.250980" d="M274.14,-116.97C223.43,-101.97 152.4,-80.95 124.21,-72.61"/>
-</g>
-<!-- volume.Segmentation -->
-<g id="node3" class="node">
-<title>volume.Segmentation</title>
-<g id="a_node3"><a xlink:title="→ volume.SegmentationTask">
-<ellipse fill="#ff0000" fill-opacity="0.125490" stroke="#ff0000" stroke-opacity="0.125490" cx="763" cy="-134.5" rx="13" ry="13"/>
-<text text-anchor="middle" x="763" y="-131.4" font-family="arial" font-size="12.00" fill="#7f0000" fill-opacity="0.627451">volume.Segmentation</text>
-</a>
-</g>
-</g>
-<!-- volume.Segmentation.Mask -->
-<g id="node4" class="node">
-<title>volume.Segmentation.Mask</title>
-<g id="a_node4"><a xlink:title="→ volume.Segmentationmask                 ------------------------------mask_npix            mask_center_x        mask_center_y        mask_center_z        mask_xpix            mask_ypix            mask_zpix            mask_weights         ">
-<polygon fill="transparent" stroke="transparent" points="832,-77.5 694,-77.5 694,-58.5 832,-58.5 832,-77.5"/>
-<text text-anchor="start" x="702" y="-66.5" font-family="arial" text-decoration="underline" font-size="10.00">volume.Segmentation.Mask</text>
-</a>
-</g>
-</g>
-<!-- volume.Segmentation&#45;&gt;volume.Segmentation.Mask -->
-<g id="edge4" class="edge">
-<title>volume.Segmentation-&gt;volume.Segmentation.Mask</title>
-<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M763,-121.37C763,-108.67 763,-89.04 763,-77.77"/>
-</g>
-<!-- volume.Segmentation&#45;&gt;volume_matching.VolumeMatchTask.Volume -->
-<g id="edge5" class="edge">
-<title>volume.Segmentation-&gt;volume_matching.VolumeMatchTask.Volume</title>
-<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M750.04,-131.57C696.29,-123.56 488.93,-92.67 387.09,-77.5"/>
-</g>
-<!-- volume.Segmentation.Mask&#45;&gt;volume_matching.VolumeMatch.VolumeMask -->
-<g id="edge6" class="edge">
-<title>volume.Segmentation.Mask-&gt;volume_matching.VolumeMatch.VolumeMask</title>
-<path fill="none" stroke="#000000" stroke-width="0.75" stroke-dasharray="5,2" stroke-opacity="0.250980" d="M732.93,-58.42C695.6,-47.77 632.33,-29.71 595.03,-19.07"/>
-</g>
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="1092pt" height="586pt" viewBox="0.00 0.00 1091.50 586.00">
+<g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 582)">
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-582 1087.5,-582 1087.5,4 -4,4"/>
 <!-- volume.Volume -->
-<g id="node5" class="node">
+<g id="node1" class="node">
 <title>volume.Volume</title>
-<g id="a_node5"><a xlink:title="→ scan.Scan------------------------------px_width             px_height            px_depth             depth_mean_brightness=null volume               ">
-<ellipse fill="#00007f" fill-opacity="0.250980" stroke="#00007f" stroke-opacity="0.250980" cx="650" cy="-276.5" rx="61.75" ry="17.5"/>
-<text text-anchor="middle" x="650" y="-273.4" font-family="arial" font-size="12.00" fill="#00007f" fill-opacity="0.627451">volume.Volume</text>
+<g id="a_node1"><a xlink:title="→ scan.Scan------------------------------px_width             px_height            px_depth             depth_mean_brightness=null volume               ">
+<ellipse fill="#00007f" fill-opacity="0.250980" stroke="#00007f" stroke-opacity="0.250980" cx="997" cy="-347.5" rx="61.75" ry="17.5"/>
+<text text-anchor="middle" x="997" y="-344.4" font-family="arial" font-size="12.00" fill="#00007f" fill-opacity="0.627451">volume.Volume</text>
 </a>
 </g>
 </g>
 <!-- volume.VoxelSize -->
-<g id="node7" class="node">
+<g id="node2" class="node">
 <title>volume.VoxelSize</title>
-<g id="a_node7"><a xlink:title="→ volume.Volume------------------------------width                height               depth                ">
-<polygon fill="#00ff00" fill-opacity="0.188235" stroke="#00ff00" stroke-opacity="0.188235" points="708.5,-223 595.5,-223 595.5,-188 708.5,-188 708.5,-223"/>
-<text text-anchor="middle" x="652" y="-202.4" font-family="arial" font-size="12.00" fill="darkgreen">volume.VoxelSize</text>
+<g id="a_node2"><a xlink:title="→ volume.Volume------------------------------width                height               depth                ">
+<polygon fill="#00ff00" fill-opacity="0.188235" stroke="#00ff00" stroke-opacity="0.188235" points="1083.5,-294 970.5,-294 970.5,-259 1083.5,-259 1083.5,-294"/>
+<text text-anchor="middle" x="1027" y="-273.4" font-family="arial" font-size="12.00" fill="darkgreen">volume.VoxelSize</text>
 </a>
 </g>
 </g>
 <!-- volume.Volume&#45;&gt;volume.VoxelSize -->
-<g id="edge7" class="edge">
+<g id="edge1" class="edge">
 <title>volume.Volume-&gt;volume.VoxelSize</title>
-<path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.250980" d="M650.48,-258.8C650.8,-247.95 651.21,-233.87 651.52,-223.05"/>
-</g>
-<!-- bossdb.VolumeUploadTask -->
-<g id="node8" class="node">
-<title>bossdb.VolumeUploadTask</title>
-<g id="a_node8"><a xlink:title="→ volume.Volumeupload_type=&quot;image&quot;  ------------------------------collection_name      experiment_name      channel_name         ">
-<polygon fill="#00ff00" fill-opacity="0.188235" stroke="#00ff00" stroke-opacity="0.188235" points="577.5,-223 414.5,-223 414.5,-188 577.5,-188 577.5,-223"/>
-<text text-anchor="start" x="422.5" y="-203.4" font-family="arial" text-decoration="underline" font-size="12.00" fill="darkgreen">bossdb.VolumeUploadTask</text>
-</a>
-</g>
-</g>
-<!-- volume.Volume&#45;&gt;bossdb.VolumeUploadTask -->
-<g id="edge8" class="edge">
-<title>volume.Volume-&gt;bossdb.VolumeUploadTask</title>
-<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M618.46,-261.37C593.65,-250.25 559.02,-234.74 532.91,-223.04"/>
+<path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.250980" d="M1004.26,-329.8C1008.98,-318.95 1015.1,-304.87 1019.8,-294.05"/>
 </g>
 <!-- volume.SegmentationTask -->
-<g id="node13" class="node">
+<g id="node7" class="node">
 <title>volume.SegmentationTask</title>
-<g id="a_node13"><a xlink:title="→ volume.Volume→ volume.SegmentationParamSet------------------------------segmentation_output_dir=&quot;&quot; task_mode=&quot;load&quot;     ">
-<polygon fill="#00ff00" fill-opacity="0.188235" stroke="#00ff00" stroke-opacity="0.188235" points="885,-223 727,-223 727,-188 885,-188 885,-223"/>
-<text text-anchor="middle" x="806" y="-202.4" font-family="arial" font-size="12.00" fill="darkgreen">volume.SegmentationTask</text>
+<g id="a_node7"><a xlink:title="→ volume.Volume→ volume.SegmentationParamSet------------------------------segmentation_output_dir=&quot;&quot; task_mode=&quot;load&quot;     ">
+<polygon fill="#00ff00" fill-opacity="0.188235" stroke="#00ff00" stroke-opacity="0.188235" points="903,-294 745,-294 745,-259 903,-259 903,-294"/>
+<text text-anchor="middle" x="824" y="-273.4" font-family="arial" font-size="12.00" fill="darkgreen">volume.SegmentationTask</text>
 </a>
 </g>
 </g>
 <!-- volume.Volume&#45;&gt;volume.SegmentationTask -->
-<g id="edge9" class="edge">
+<g id="edge2" class="edge">
 <title>volume.Volume-&gt;volume.SegmentationTask</title>
-<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M681.95,-261.37C707.08,-250.25 742.16,-234.74 768.61,-223.04"/>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M962.82,-332.87C934.85,-321.71 895.2,-305.9 865.43,-294.02"/>
 </g>
-<!-- volume_matching.VolumeMatch.Transformation -->
-<g id="node6" class="node">
-<title>volume_matching.VolumeMatch.Transformation</title>
-<g id="a_node6"><a xlink:title="→ volume_matching.VolumeMatch→ volume_matching.VolumeMatchTask.Volume------------------------------transformation_matrix ">
-<polygon fill="transparent" stroke="transparent" points="224,-19 0,-19 0,0 224,0 224,-19"/>
-<text text-anchor="middle" x="112" y="-7" font-family="arial" font-size="10.00">volume_matching.VolumeMatch.Transformation</text>
+<!-- bossdb.VolumeUpload -->
+<g id="node13" class="node">
+<title>bossdb.VolumeUpload</title>
+<g id="a_node13"><a xlink:title="→ volume.VoxelSize→ bossdb.VolumeUploadTask">
+<ellipse fill="#ff0000" fill-opacity="0.125490" stroke="#ff0000" stroke-opacity="0.125490" cx="987" cy="-68" rx="13" ry="13"/>
+<text text-anchor="middle" x="987" y="-64.9" font-family="arial" font-size="12.00" fill="#7f0000" fill-opacity="0.627451">bossdb.VolumeUpload</text>
 </a>
 </g>
 </g>
-<!-- bossdb.BossDBURLs -->
-<g id="node10" class="node">
-<title>bossdb.BossDBURLs</title>
-<g id="a_node10"><a xlink:title="→ bossdb.VolumeUploadTask------------------------------bossdb_url           neuroglancer_url=&quot;&quot;  ">
-<ellipse fill="#00007f" fill-opacity="0.250980" stroke="#00007f" stroke-opacity="0.250980" cx="538" cy="-134.5" rx="83.5" ry="17.5"/>
-<text text-anchor="middle" x="538" y="-131.4" font-family="arial" font-size="12.00" fill="#00007f" fill-opacity="0.627451">bossdb.BossDBURLs</text>
+<!-- volume.VoxelSize&#45;&gt;bossdb.VolumeUpload -->
+<g id="edge3" class="edge">
+<title>volume.VoxelSize-&gt;bossdb.VolumeUpload</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M1029.83,-258.71C1034.12,-229.12 1040.07,-166.14 1023,-117 1017.53,-101.26 1004.84,-86.44 996.08,-77.55"/>
+</g>
+<!-- volume_matching.VolumeMatch.VolumeMask -->
+<g id="node3" class="node">
+<title>volume_matching.VolumeMatch.VolumeMask</title>
+<g id="a_node3"><a xlink:title="→ volume_matching.VolumeMatch.CommonMask→ volume_matching.VolumeMatchTask.Volume------------------------------→ volume.Segmentation.Maskconfidence           ">
+<polygon fill="transparent" stroke="transparent" points="672.5,-77.5 457.5,-77.5 457.5,-58.5 672.5,-58.5 672.5,-77.5"/>
+<text text-anchor="middle" x="565" y="-65.5" font-family="arial" font-size="10.00">volume_matching.VolumeMatch.VolumeMask</text>
 </a>
 </g>
-</g>
-<!-- bossdb.VolumeUploadTask&#45;&gt;bossdb.BossDBURLs -->
-<g id="edge10" class="edge">
-<title>bossdb.VolumeUploadTask-&gt;bossdb.BossDBURLs</title>
-<path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.250980" d="M506.17,-187.8C512.77,-176.95 521.34,-162.87 527.93,-152.05"/>
-</g>
-<!-- volume_matching.VolumeMatchTask.Volume&#45;&gt;volume_matching.VolumeMatch.Transformation -->
-<g id="edge11" class="edge">
-<title>volume_matching.VolumeMatchTask.Volume-&gt;volume_matching.VolumeMatch.Transformation</title>
-<path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.250980" d="M296.89,-58.42C255.8,-47.77 186.14,-29.71 145.06,-19.07"/>
-</g>
-<!-- volume_matching.VolumeMatchTask.Volume&#45;&gt;volume_matching.VolumeMatch.VolumeMask -->
-<g id="edge12" class="edge">
-<title>volume_matching.VolumeMatchTask.Volume-&gt;volume_matching.VolumeMatch.VolumeMask</title>
-<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M365.44,-58.48C409.67,-47.84 484.9,-29.76 529.28,-19.09"/>
-</g>
-<!-- volume.SegmentationParamSet -->
-<g id="node11" class="node">
-<title>volume.SegmentationParamSet</title>
-<g id="a_node11"><a xlink:title="paramset_idx         ------------------------------segmentation_method  paramset_desc=&quot;&quot;     params               paramset_hash        UNIQUE INDEX (paramset_hash)">
-<polygon fill="#000000" fill-opacity="0.125490" stroke="transparent" points="884.5,-294 729.5,-294 729.5,-259 884.5,-259 884.5,-294"/>
-<text text-anchor="start" x="737.5" y="-275" font-family="arial" text-decoration="underline" font-size="10.00">volume.SegmentationParamSet</text>
-</a>
-</g>
-</g>
-<!-- volume.SegmentationParamSet&#45;&gt;volume.SegmentationTask -->
-<g id="edge13" class="edge">
-<title>volume.SegmentationParamSet-&gt;volume.SegmentationTask</title>
-<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M806.76,-258.8C806.6,-247.95 806.4,-233.87 806.24,-223.05"/>
-</g>
-<!-- volume_matching.VolumeMatch&#45;&gt;volume_matching.VolumeMatch.Transformation -->
-<g id="edge14" class="edge">
-<title>volume_matching.VolumeMatch-&gt;volume_matching.VolumeMatch.Transformation</title>
-<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M112,-54.74C112,-43.97 112,-28.56 112,-19.06"/>
-</g>
-<!-- volume.SegmentationTask&#45;&gt;volume.Segmentation -->
-<g id="edge15" class="edge">
-<title>volume.SegmentationTask-&gt;volume.Segmentation</title>
-<path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.250980" d="M795.59,-187.8C787.44,-174.71 776.36,-156.93 769.44,-145.84"/>
 </g>
 <!-- subject.Subject -->
-<g id="node14" class="node">
+<g id="node4" class="node">
 <title>subject.Subject</title>
-<g id="a_node14"><a xlink:title="subject              ------------------------------subject_nickname=&quot;&quot;  sex                  subject_birth_date   subject_description=&quot;&quot; ">
-<polygon fill="#00ff00" fill-opacity="0.188235" stroke="#00ff00" stroke-opacity="0.188235" points="699,-507 601,-507 601,-472 699,-472 699,-507"/>
-<text text-anchor="start" x="609" y="-487.4" font-family="arial" text-decoration="underline" font-size="12.00" fill="darkgreen">subject.Subject</text>
+<g id="a_node4"><a xlink:title="subject              ------------------------------subject_nickname=&quot;&quot;  sex                  subject_birth_date   subject_description=&quot;&quot; ">
+<polygon fill="#00ff00" fill-opacity="0.188235" stroke="#00ff00" stroke-opacity="0.188235" points="1046,-578 948,-578 948,-543 1046,-543 1046,-578"/>
+<text text-anchor="start" x="956" y="-558.4" font-family="arial" text-decoration="underline" font-size="12.00" fill="darkgreen">subject.Subject</text>
 </a>
 </g>
 </g>
@@ -215,34 +74,194 @@
 <g id="node16" class="node">
 <title>session.Session</title>
 <g id="a_node16"><a xlink:title="→ subject.Subjectsession_id           ------------------------------session_datetime     ">
-<polygon fill="#00ff00" fill-opacity="0.188235" stroke="#00ff00" stroke-opacity="0.188235" points="702,-436 598,-436 598,-401 702,-401 702,-436"/>
-<text text-anchor="start" x="606" y="-416.4" font-family="arial" text-decoration="underline" font-size="12.00" fill="darkgreen">session.Session</text>
+<polygon fill="#00ff00" fill-opacity="0.188235" stroke="#00ff00" stroke-opacity="0.188235" points="1049,-507 945,-507 945,-472 1049,-472 1049,-507"/>
+<text text-anchor="start" x="953" y="-487.4" font-family="arial" text-decoration="underline" font-size="12.00" fill="darkgreen">session.Session</text>
 </a>
 </g>
 </g>
 <!-- subject.Subject&#45;&gt;session.Session -->
-<g id="edge16" class="edge">
+<g id="edge4" class="edge">
 <title>subject.Subject-&gt;session.Session</title>
-<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M650,-471.8C650,-460.95 650,-446.87 650,-436.05"/>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M997,-542.8C997,-531.95 997,-517.87 997,-507.05"/>
 </g>
-<!-- scan.Scan -->
-<g id="node15" class="node">
-<title>scan.Scan</title>
-<g id="a_node15"><a xlink:title="→ session.Sessionscan_id              ------------------------------→ [nullable] `kushalbakshi2_reference`.`#device`→ scan.AcquisitionSoftwarescan_notes=&quot;&quot;        ">
-<polygon fill="#00ff00" fill-opacity="0.188235" stroke="#00ff00" stroke-opacity="0.188235" points="686.5,-365 613.5,-365 613.5,-330 686.5,-330 686.5,-365"/>
-<text text-anchor="start" x="621.5" y="-345.4" font-family="arial" text-decoration="underline" font-size="12.00" fill="darkgreen">scan.Scan</text>
+<!-- volume_matching.VolumeMatch.CommonMask -->
+<g id="node5" class="node">
+<title>volume_matching.VolumeMatch.CommonMask</title>
+<g id="a_node5"><a xlink:title="common_mask          ">
+<polygon fill="transparent" stroke="transparent" points="676,-144 454,-144 454,-125 676,-125 676,-144"/>
+<text text-anchor="start" x="462" y="-133" font-family="arial" text-decoration="underline" font-size="10.00">volume_matching.VolumeMatch.CommonMask</text>
 </a>
 </g>
 </g>
-<!-- scan.Scan&#45;&gt;volume.Volume -->
+<!-- volume_matching.VolumeMatch.CommonMask&#45;&gt;volume_matching.VolumeMatch.VolumeMask -->
+<g id="edge5" class="edge">
+<title>volume_matching.VolumeMatch.CommonMask-&gt;volume_matching.VolumeMatch.VolumeMask</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M565,-124.8C565,-112.42 565,-89.86 565,-77.56"/>
+</g>
+<!-- bossdb.VolumeUpload.WebAddress -->
+<g id="node6" class="node">
+<title>bossdb.VolumeUpload.WebAddress</title>
+<g id="a_node6"><a xlink:title="→ bossdb.VolumeUploadupload_type=&quot;image&quot;  web_address_type=&quot;bossdb&quot; ------------------------------web_address          ">
+<polygon fill="transparent" stroke="transparent" points="1073.5,-19 900.5,-19 900.5,0 1073.5,0 1073.5,-19"/>
+<text text-anchor="start" x="908.5" y="-8" font-family="arial" text-decoration="underline" font-size="10.00">bossdb.VolumeUpload.WebAddress</text>
+</a>
+</g>
+</g>
+<!-- volume.Segmentation -->
+<g id="node8" class="node">
+<title>volume.Segmentation</title>
+<g id="a_node8"><a xlink:title="→ volume.SegmentationTask">
+<ellipse fill="#ff0000" fill-opacity="0.125490" stroke="#ff0000" stroke-opacity="0.125490" cx="763" cy="-205.5" rx="13" ry="13"/>
+<text text-anchor="middle" x="763" y="-202.4" font-family="arial" font-size="12.00" fill="#7f0000" fill-opacity="0.627451">volume.Segmentation</text>
+</a>
+</g>
+</g>
+<!-- volume.SegmentationTask&#45;&gt;volume.Segmentation -->
+<g id="edge6" class="edge">
+<title>volume.SegmentationTask-&gt;volume.Segmentation</title>
+<path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.250980" d="M809.23,-258.8C797.39,-245.4 781.18,-227.06 771.43,-216.04"/>
+</g>
+<!-- volume_matching.VolumeMatchTask.Volume -->
+<g id="node11" class="node">
+<title>volume_matching.VolumeMatchTask.Volume</title>
+<g id="a_node11"><a xlink:title="→ volume_matching.VolumeMatchTask→ volume.Segmentation">
+<polygon fill="transparent" stroke="transparent" points="436,-144 224,-144 224,-125 436,-125 436,-144"/>
+<text text-anchor="middle" x="330" y="-132" font-family="arial" font-size="10.00">volume_matching.VolumeMatchTask.Volume</text>
+</a>
+</g>
+</g>
+<!-- volume.Segmentation&#45;&gt;volume_matching.VolumeMatchTask.Volume -->
+<g id="edge7" class="edge">
+<title>volume.Segmentation-&gt;volume_matching.VolumeMatchTask.Volume</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M750.04,-202.43C695.65,-193.77 484.02,-160.04 383.54,-144.03"/>
+</g>
+<!-- bossdb.VolumeUploadTask -->
+<g id="node15" class="node">
+<title>bossdb.VolumeUploadTask</title>
+<g id="a_node15"><a xlink:title="→ volume.Segmentation------------------------------collection_name      experiment_name      channel_name         ">
+<polygon fill="#00ff00" fill-opacity="0.188235" stroke="#00ff00" stroke-opacity="0.188235" points="1013.5,-152 850.5,-152 850.5,-117 1013.5,-117 1013.5,-152"/>
+<text text-anchor="middle" x="932" y="-131.4" font-family="arial" font-size="12.00" fill="darkgreen">bossdb.VolumeUploadTask</text>
+</a>
+</g>
+</g>
+<!-- volume.Segmentation&#45;&gt;bossdb.VolumeUploadTask -->
+<g id="edge8" class="edge">
+<title>volume.Segmentation-&gt;bossdb.VolumeUploadTask</title>
+<path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.250980" d="M774.88,-199.65C798.7,-189.92 853.25,-167.65 891.35,-152.1"/>
+</g>
+<!-- volume.Segmentation.Mask -->
+<g id="node17" class="node">
+<title>volume.Segmentation.Mask</title>
+<g id="a_node17"><a xlink:title="→ volume.Segmentationmask                 ------------------------------mask_npix            mask_center_x        mask_center_y        mask_center_z        mask_xpix            mask_ypix            mask_zpix            mask_weights         ">
+<polygon fill="transparent" stroke="transparent" points="832,-144 694,-144 694,-125 832,-125 832,-144"/>
+<text text-anchor="start" x="702" y="-133" font-family="arial" text-decoration="underline" font-size="10.00">volume.Segmentation.Mask</text>
+</a>
+</g>
+</g>
+<!-- volume.Segmentation&#45;&gt;volume.Segmentation.Mask -->
+<g id="edge9" class="edge">
+<title>volume.Segmentation-&gt;volume.Segmentation.Mask</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M763,-192.48C763,-178.74 763,-156.56 763,-144.32"/>
+</g>
+<!-- volume_matching.VolumeMatchTask -->
+<g id="node9" class="node">
+<title>volume_matching.VolumeMatchTask</title>
+<g id="a_node9"><a xlink:title="volume_match_task    ">
+<polygon fill="#00ff00" fill-opacity="0.188235" stroke="#00ff00" stroke-opacity="0.188235" points="436,-223 224,-223 224,-188 436,-188 436,-223"/>
+<text text-anchor="start" x="232" y="-203.4" font-family="arial" text-decoration="underline" font-size="12.00" fill="darkgreen">volume_matching.VolumeMatchTask</text>
+</a>
+</g>
+</g>
+<!-- volume_matching.VolumeMatch -->
+<g id="node10" class="node">
+<title>volume_matching.VolumeMatch</title>
+<g id="a_node10"><a xlink:title="→ volume_matching.VolumeMatchTask------------------------------execution_time       execution_duration   ">
+<ellipse fill="#ff0000" fill-opacity="0.125490" stroke="#ff0000" stroke-opacity="0.125490" cx="112" cy="-134.5" rx="13" ry="13"/>
+<text text-anchor="middle" x="112" y="-131.4" font-family="arial" font-size="12.00" fill="#7f0000" fill-opacity="0.627451">volume_matching.VolumeMatch</text>
+</a>
+</g>
+</g>
+<!-- volume_matching.VolumeMatchTask&#45;&gt;volume_matching.VolumeMatch -->
+<g id="edge10" class="edge">
+<title>volume_matching.VolumeMatchTask-&gt;volume_matching.VolumeMatch</title>
+<path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.250980" d="M277.78,-187.97C226.89,-171.87 153.09,-148.51 124.22,-139.37"/>
+</g>
+<!-- volume_matching.VolumeMatchTask&#45;&gt;volume_matching.VolumeMatchTask.Volume -->
+<g id="edge11" class="edge">
+<title>volume_matching.VolumeMatchTask-&gt;volume_matching.VolumeMatchTask.Volume</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M330,-187.8C330,-174.08 330,-155.19 330,-144.27"/>
+</g>
+<!-- volume_matching.VolumeMatch.Transformation -->
+<g id="node14" class="node">
+<title>volume_matching.VolumeMatch.Transformation</title>
+<g id="a_node14"><a xlink:title="→ volume_matching.VolumeMatch→ volume_matching.VolumeMatchTask.Volume------------------------------transformation_matrix ">
+<polygon fill="transparent" stroke="transparent" points="224,-77.5 0,-77.5 0,-58.5 224,-58.5 224,-77.5"/>
+<text text-anchor="middle" x="112" y="-65.5" font-family="arial" font-size="10.00">volume_matching.VolumeMatch.Transformation</text>
+</a>
+</g>
+</g>
+<!-- volume_matching.VolumeMatch&#45;&gt;volume_matching.VolumeMatch.Transformation -->
+<g id="edge12" class="edge">
+<title>volume_matching.VolumeMatch-&gt;volume_matching.VolumeMatch.Transformation</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M112,-121.37C112,-108.67 112,-89.04 112,-77.77"/>
+</g>
+<!-- volume_matching.VolumeMatchTask.Volume&#45;&gt;volume_matching.VolumeMatch.VolumeMask -->
+<g id="edge13" class="edge">
+<title>volume_matching.VolumeMatchTask.Volume-&gt;volume_matching.VolumeMatch.VolumeMask</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M361.21,-124.93C406.15,-112.6 488.65,-89.96 533.66,-77.6"/>
+</g>
+<!-- volume_matching.VolumeMatchTask.Volume&#45;&gt;volume_matching.VolumeMatch.Transformation -->
+<g id="edge14" class="edge">
+<title>volume_matching.VolumeMatchTask.Volume-&gt;volume_matching.VolumeMatch.Transformation</title>
+<path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.250980" d="M301.05,-124.93C259.36,-112.6 182.83,-89.96 141.07,-77.6"/>
+</g>
+<!-- volume.SegmentationParamSet -->
+<g id="node12" class="node">
+<title>volume.SegmentationParamSet</title>
+<g id="a_node12"><a xlink:title="paramset_idx         ------------------------------segmentation_method  paramset_desc=&quot;&quot;     params               paramset_hash        UNIQUE INDEX (paramset_hash)">
+<polygon fill="#000000" fill-opacity="0.125490" stroke="transparent" points="901.5,-365 746.5,-365 746.5,-330 901.5,-330 901.5,-365"/>
+<text text-anchor="start" x="754.5" y="-346" font-family="arial" text-decoration="underline" font-size="10.00">volume.SegmentationParamSet</text>
+</a>
+</g>
+</g>
+<!-- volume.SegmentationParamSet&#45;&gt;volume.SegmentationTask -->
+<g id="edge15" class="edge">
+<title>volume.SegmentationParamSet-&gt;volume.SegmentationTask</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M824,-329.8C824,-318.95 824,-304.87 824,-294.05"/>
+</g>
+<!-- bossdb.VolumeUpload&#45;&gt;bossdb.VolumeUpload.WebAddress -->
+<g id="edge16" class="edge">
+<title>bossdb.VolumeUpload-&gt;bossdb.VolumeUpload.WebAddress</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M987,-54.74C987,-43.97 987,-28.56 987,-19.06"/>
+</g>
+<!-- bossdb.VolumeUploadTask&#45;&gt;bossdb.VolumeUpload -->
 <g id="edge17" class="edge">
-<title>scan.Scan-&gt;volume.Volume</title>
-<path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.250980" d="M650,-329.8C650,-318.95 650,-304.87 650,-294.05"/>
+<title>bossdb.VolumeUploadTask-&gt;bossdb.VolumeUpload</title>
+<path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.250980" d="M946.16,-116.89C956.6,-104.65 970.43,-88.44 979.01,-78.37"/>
+</g>
+<!-- scan.Scan -->
+<g id="node18" class="node">
+<title>scan.Scan</title>
+<g id="a_node18"><a xlink:title="→ session.Sessionscan_id              ------------------------------→ [nullable] `kushalbakshi2_reference`.`#device`→ scan.AcquisitionSoftwarescan_notes=&quot;&quot;        ">
+<polygon fill="#00ff00" fill-opacity="0.188235" stroke="#00ff00" stroke-opacity="0.188235" points="1033.5,-436 960.5,-436 960.5,-401 1033.5,-401 1033.5,-436"/>
+<text text-anchor="start" x="968.5" y="-416.4" font-family="arial" text-decoration="underline" font-size="12.00" fill="darkgreen">scan.Scan</text>
+</a>
+</g>
 </g>
 <!-- session.Session&#45;&gt;scan.Scan -->
 <g id="edge18" class="edge">
 <title>session.Session-&gt;scan.Scan</title>
-<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M650,-400.8C650,-389.95 650,-375.87 650,-365.05"/>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M997,-471.8C997,-460.95 997,-446.87 997,-436.05"/>
+</g>
+<!-- volume.Segmentation.Mask&#45;&gt;volume_matching.VolumeMatch.VolumeMask -->
+<g id="edge19" class="edge">
+<title>volume.Segmentation.Mask-&gt;volume_matching.VolumeMatch.VolumeMask</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-dasharray="5,2" stroke-opacity="0.250980" d="M736.71,-124.93C698.84,-112.6 629.33,-89.96 591.4,-77.6"/>
+</g>
+<!-- scan.Scan&#45;&gt;volume.Volume -->
+<g id="edge20" class="edge">
+<title>scan.Scan-&gt;volume.Volume</title>
+<path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.250980" d="M997,-400.8C997,-389.95 997,-375.87 997,-365.05"/>
 </g>
 </g>
 </svg>

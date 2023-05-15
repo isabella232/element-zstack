@@ -24,3 +24,8 @@ DataJoint Element for z-stack (volumetric) imaging, features cell segmentation w
 + [Interactive tutorial on GitHub Codespaces](https://github.com/datajoint/workflow-zstack#interactive-tutorial)
 
 + [Documentation](https://datajoint.com/docs/elements/element-zstack)
+
+## Support
+
++ If you need help getting started or run into any errors, please contact our team by email at support@datajoint.com.
+

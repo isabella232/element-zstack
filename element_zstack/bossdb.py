@@ -35,7 +35,7 @@ def activate(
     Dependencies:
     Tables:
         volume.Volume: A parent table to VolumeUploadTask
-        volume.VoxelSize: A dependency of BossDBURLs
+        volume.VoxelSize: A dependency of VolumeUpload
     """
 
     if isinstance(linking_module, str):
@@ -61,9 +61,9 @@ class VolumeUploadTask(dj.Manual):
 
     Attributes:
         volume.Segmentation (foreign key): Primary key from `volume.Segmentation`.
-        collection_name (varchar(64)): Name of the collection on BossDB.
-        experiment_name (varchar(64)): Name of the experiment on BossDB.
-        channel_name (varchar(64)): Name of the channel on BossDB.
+        collection_name (str): Name of the collection on BossDB.
+        experiment_name (str): Name of the experiment on BossDB.
+        channel_name (str): Name of the channel on BossDB.
     """
 
     definition = """

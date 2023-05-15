@@ -1,6 +1,6 @@
 # Key Partnerships
 
-Labs have developed DataJoint-based pipelines for volumetric
+Labs have developed pipelines for volumetric
 data. The DataJoint team interviewed and collaborated with these teams to
 understand their experiment workflow, associated tools, and interfaces. These teams
 include:

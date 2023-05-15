@@ -9,7 +9,7 @@ nav:
   - Data Pipeline: pipeline.md
   - Tutorials:
       - tutorials/index.md
-      - Notebook: tutorials/tutorial.ipynb
+      - Tutorial notebook: tutorials/tutorial.ipynb
   - Concepts: concepts.md
   - Key Partnerships: partnerships.md
   - Roadmap: roadmap.md

@@ -296,7 +296,6 @@ class Segmentation(dj.Computed):
     def make(self, key):
         """Populate the Segmentation and Segmentation.Mask tables with results of cellpose segmentation."""
 
-        # NOTE: convert seg data to unit16 instead of uint64
         task_mode, seg_method, output_dir, params = (
             SegmentationTask * SegmentationParamSet & key
         ).fetch1(

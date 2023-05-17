@@ -4,6 +4,8 @@ import logging
 
 import datajoint as dj
 import numpy as np
+from tifffile import TiffFile
+
 from . import volume
 
 from .export.bossdb_interface import BossDBUpload
@@ -167,7 +169,11 @@ class VolumeUpload(dj.Computed):
         boss_url = []
         neuroglancer_url = []
 
-        full_data.append((volume.Volume & key).fetch1("volume"))
+        volume_relative_path = (Volume & key).fetch1("volume_file_path")
+        volume_file_path = find_full_path(get_volume_root_data_dir(), volume_relative_path).as_posix()
+        volume_data = TiffFile(volume_file_path).asarray()
+
+        full_data.append(volume_data)
         boss_url.append(f"bossdb://{collection}/{experiment}/{channel}")
 
         z_size, y_size, x_size = (volume.Volume & key).fetch1(

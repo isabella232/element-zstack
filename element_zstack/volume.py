@@ -7,7 +7,7 @@ import numpy as np
 from tifffile import TiffFile
 
 import datajoint as dj
-from element_interface.utils import dict_to_uuid, find_full_path
+from element_interface.utils import dict_to_uuid, find_full_path, find_root_directory
 
 
 logger = logging.getLogger("datajoint")
@@ -112,18 +112,21 @@ class Volume(dj.Imported):
     px_height: int # total number of voxels in y dimension
     px_depth: int # total number of voxels in z dimension
     depth_mean_brightness=null: longblob  # mean brightness of each slice across the depth (z) dimension of the stack
-    volume: longblob  # volumetric data - np.ndarray with shape (z, y, x)
+    volume_file_path: varchar(255)  # Path of the volumetric data with shape (z, y, x)
     """
 
     def make(self, key):
         """Populate the Volume table with volumetric microscopic imaging data."""
-        vol_tif_fp = get_volume_tif_file(key)
-        volume_data = TiffFile(vol_tif_fp).asarray()
+        volume_file_path = get_volume_tif_file(key)
+        volume_data = TiffFile(volume_file_path).asarray()
+
+        root_dir = find_root_directory(get_volume_root_data_dir(), volume_file_path)
+        volume_relative_path = Path(volume_file_path).relative_to(root_dir).as_posix()
 
         self.insert1(
             dict(
                 **key,
-                volume=volume_data,
+                volume_file_path=volume_relative_path,
                 px_width=volume_data.shape[2],
                 px_height=volume_data.shape[1],
                 px_depth=volume_data.shape[0],
@@ -305,8 +308,15 @@ class Segmentation(dj.Computed):
         if task_mode == "trigger" and seg_method.lower() == "cellpose":
             from cellpose import models as cellpose_models
 
-            volume_data = (Volume & key).fetch1("volume")
+            volume_relative_path = (Volume & key).fetch1("volume_file_path")
+            volume_file_path = find_full_path(
+                get_volume_root_data_dir(), volume_relative_path
+            ).as_posix()
+            print("load volume data")
+            volume_data = TiffFile(volume_file_path).asarray()
+            print("create cellpose model")
             model = cellpose_models.CellposeModel(model_type=params["model_type"])
+            print("model evaluation started")
             cellpose_results = model.eval(
                 [volume_data],
                 diameter=params["diameter"],
@@ -319,6 +329,7 @@ class Segmentation(dj.Computed):
             )
             masks, flows, styles = cellpose_results
 
+            print("create mask array")
             mask_entries = []
             for mask_id in set(masks[0].flatten()) - {0}:
                 mask = np.argwhere(masks[0] == mask_id)
@@ -343,5 +354,6 @@ class Segmentation(dj.Computed):
         else:
             raise NotImplementedError
 
+        print("begin insert")
         self.insert1(key)
         self.Mask.insert(mask_entries)

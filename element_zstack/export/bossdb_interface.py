@@ -34,12 +34,11 @@ class BossDBUpload:
 
         Args:
             url (str): Bossdb URL where data will be uploaded.
-            data_dir (str): Full path to local directory where data is stored.
-            data_description (str): either `image` or `annotation.
+            volume_data (np.ndarray): Numpy array of the volumetric data
+            data_description (str): either `image` or `annotation`.
             voxel_size (Tuple[int, int, int]): Voxel size of the image in z,y,x
             format.
             voxel_units (str): Voxel units as string.
-            data_extension (str, optional): Extension of files to be uploaded.
             upload_increment (int, optional): Number of z slices to upload at
             once.
             retry_max (int, optional): Number of retries to upload a single
@@ -68,7 +67,7 @@ class BossDBUpload:
             self.url_exists = True
         if not overwrite and self.url_exists:
             logger.warning(
-                f"Dataset exists already exists at {self._url}\n"
+                f"Dataset already exists at {self._url}\n"
                 + " To overwrite, set `overwrite` to True"
             )
             return

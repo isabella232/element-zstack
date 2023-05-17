@@ -34,7 +34,7 @@ def activate(
 
     Dependencies:
     Tables:
-        volume.Volume: A parent table to VolumeUploadTask
+        volume.VolumeSegmentation: A parent table to VolumeUploadTask
         volume.VoxelSize: A dependency of VolumeUpload
     """
 
@@ -113,7 +113,7 @@ class VolumeUpload(dj.Computed):
             return "https://neuroglancer.bossdb.io/#!" + str(
                 {
                     "layers": {
-                        "type": f"{type}",
+                        "type": "image",
                         "source": base_url,
                         "tab": "source",
                         "name": f"{experiment}",
@@ -187,7 +187,7 @@ class VolumeUpload(dj.Computed):
 
         boss_url.append(f"bossdb://{collection}/{experiment}/{channel}-seg")
 
-        for url, data, desc in zip(boss_url, full_data, description):
+        for url, data, desc in zip(boss_url, full_data, description[:2]):
             BossDBUpload(
                 url=url,
                 volume_data=data,
@@ -205,7 +205,7 @@ class VolumeUpload(dj.Computed):
                     web_address_type="bossdb",
                     web_address=db_url,
                 )
-                for desc, db_url in list(zip(description, boss_url))
+                for desc, db_url in list(zip(description[:2], boss_url))
             ]
         )
 

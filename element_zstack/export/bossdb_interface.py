@@ -27,7 +27,7 @@ class BossDBUpload:
         voxel_size: Tuple[int, int, int],  # voxel size in ZYX order
         voxel_units: str,  # The size units of a voxel
         upload_increment: Optional[int] = 16,  # How many z slices to upload at once
-        retry_max: Optional[int] = 3,  # Number of retries to upload a single
+        retry_max: Optional[int] = 3,  # Number of retries to upload a single increment
         overwrite: Optional[bool] = False,  # Overwrite existing data
     ):
         """Required information for data upload to bossdb.

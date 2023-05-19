@@ -101,8 +101,7 @@ class Volume(dj.Imported):
         px_depth (int): total number of voxels in the z dimension.
         depth_mean_brightness (longblob): optional, mean brightness of each slice across
         the depth (z) dimension of the stack.
-        volume (longblob): volumetric data - np.ndarray with shape (z, y, x) and
-        dtype('uint8').
+        volume_file_path (str): Relative path of the volumetric data with shape (z, y, x)
     """
 
     definition = """
@@ -112,7 +111,7 @@ class Volume(dj.Imported):
     px_height: int # total number of voxels in y dimension
     px_depth: int # total number of voxels in z dimension
     depth_mean_brightness=null: longblob  # mean brightness of each slice across the depth (z) dimension of the stack
-    volume_file_path: varchar(255)  # Path of the volumetric data with shape (z, y, x)
+    volume_file_path: varchar(255)  # Relative path of the volumetric data with shape (z, y, x)
     """
 
     def make(self, key):

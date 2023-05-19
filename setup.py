@@ -17,14 +17,14 @@ with open(path.join(here, pkg_name, "version.py")) as f:
 setup(
     name=pkg_name.replace("_", "-"),
     version=__version__,  # noqa: F821
-    description="DataJoint Element for Volume Registration and Cell Matching",
+    description="DataJoint Element for Volume Segmentation",
     long_description=long_description,
     long_description_content_type="text/markdown",
     author="DataJoint",
     author_email="info@datajoint.com",
     license="MIT",
     url=f'https://github.com/datajoint/{pkg_name.replace("_", "-")}',
-    keywords="neuroscience cell matching volume registration",
+    keywords="neuroscience volume segmentation",
     packages=find_packages(exclude=["contrib", "docs", "tests*"]),
     install_requires=requirements,
 )

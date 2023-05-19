@@ -1,13 +1,10 @@
 # Data Pipeline
 
-Element ZStack is composed of two main schemas, `volume` and `volume_matching`. Data 
-export to BossDB is handled with a `bossdb` schema and upload utilities.
+Element ZStack is composed of two main schemas, `volume` and `bossdb`. Data 
+export to BossDB is handled with the `bossdb` schema and upload utilities.
 
 - `volume` module - performs segmentation of volumetric microscopic images with 
 `cellpose`.
-
-- `volume_matching` module - performs volume registration to a common space and matches 
-cells across imaging sessions.
 
 - `bossdb` module - uploads data to BossDB, creates a Neuroglancer visualization, and 
 stores the relevant URLs.
@@ -55,17 +52,6 @@ more detailed documentation on each table, see the API docs for the respective s
 | SegmentationTask | Task defined by a combination of Volume and SegmentationParamSet |
 | Segmentation | The core table that executes a SegmentationTask |
 | Segmentation.Mask | Details of the masks identified from the segmentation |
-
-### `volume_matching` schema ([API docs](https://datajoint.com/docs/elements/element-zstack/latest/api/element_zstack/volume_matching))
-
-| Table | Description |
-| --- | --- |
-| VolumeMatchTask | Defines the volume matching task |
-| VolumeMatchTask.Volume | Defines the volume segmentations that will be registered in the downstream `VolumeMatch` table |
-| VolumeMatch | Executes the volume matching algorithm |
-| VolumeMatch.Transformation | Store the transformation matrix to the common space |
-| VolumeMatch.CommonMask | Store common mask identifier |
-| VolumeMatch.VolumeMask | For the masks in the common space, store the associated mask in the segmented volumes, and the confidence of the volume registration and cell matching |
 
 ### `bossdb` schema ([API docs](https://datajoint.com/docs/elements/element-zstack/latest/api/element_zstack/bossdb))
 

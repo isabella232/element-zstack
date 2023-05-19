@@ -19,9 +19,9 @@ Guide](https://datajoint.com/docs/elements/user-guide/) page.
 ## Example Export to BossDB
 
 ![Bossdb
-Data](https://github.com/datajoint/element-zstack/blob/main/images/BossDB_screenshot.png)
+Data](https://raw.githubusercontent.com/datajoint/element-zstack/main/images/BossDB_screenshot.png)
 
 
 ## Example Visualization on Neuroglancer
 
-![Neuroglancer Visualization](https://github.com/datajoint/element-zstack/blob/main/images/Neuroglancer_screenshot.png)
+![Neuroglancer Visualization](https://raw.githubusercontent.com/datajoint/element-zstack/main/images/Neuroglancer_screenshot.png)

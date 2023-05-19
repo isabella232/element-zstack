@@ -14,7 +14,7 @@ corresponding table in the database.  Within the workflow, Element ZStack
 connects to upstream Elements including Lab, Animal, Session, and Calcium Imaging. For 
 more detailed documentation on each table, see the API docs for the respective schemas.
 
-![pipeline](https://raw.githubusercontent.com/datajoint/element-zstack/images/pipeline.svg)
+![pipeline](https://raw.githubusercontent.com/datajoint/element-zstack/main/images/pipeline.svg)
 
 ### `reference` schema ([API docs](https://datajoint.com/docs/elements/element-zstack/latest/api/workflow_zstack/reference))
 

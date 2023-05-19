@@ -1,6 +1,7 @@
 import importlib
 import inspect
 import logging
+from pathlib import Path
 
 import datajoint as dj
 import numpy as np
@@ -9,6 +10,8 @@ from tifffile import TiffFile
 from . import volume
 
 from .export.bossdb_interface import BossDBUpload
+
+from element_interface.utils import find_full_path
 
 logger = logging.getLogger("datajoint")
 
@@ -38,6 +41,9 @@ def activate(
     Tables:
         volume.VolumeSegmentation: A parent table to VolumeUploadTask
         volume.VoxelSize: A dependency of VolumeUpload
+    Functions:
+        get_volume_root_data_dir: Returns absolute path for root data
+        director(y/ies) with all volumetric data, as a list of string(s).
     """
 
     if isinstance(linking_module, str):
@@ -55,6 +61,27 @@ def activate(
         create_tables=create_tables,
         add_objects=_linking_module.__dict__,
     )
+
+
+# -------------------------- Functions required by the Element -------------------------
+
+
+def get_volume_root_data_dir() -> list:
+    """Fetches absolute data path to volume data directories.
+
+    The absolute path here is used as a reference for all downstream relative paths used in DataJoint.
+
+    Returns:
+        A list of the absolute path(s) to volume data directories.
+    """
+    root_directories = _linking_module.get_volume_root_data_dir()
+    if isinstance(root_directories, (str, Path)):
+        root_directories = [root_directories]
+
+    return root_directories
+
+
+# --------------------------------------- Schema ---------------------------------------
 
 
 @schema
@@ -169,8 +196,10 @@ class VolumeUpload(dj.Computed):
         boss_url = []
         neuroglancer_url = []
 
-        volume_relative_path = (Volume & key).fetch1("volume_file_path")
-        volume_file_path = find_full_path(get_volume_root_data_dir(), volume_relative_path).as_posix()
+        volume_relative_path = (volume.Volume & key).fetch1("volume_file_path")
+        volume_file_path = find_full_path(
+            get_volume_root_data_dir(), volume_relative_path
+        ).as_posix()
         volume_data = TiffFile(volume_file_path).asarray()
 
         full_data.append(volume_data)

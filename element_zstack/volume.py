@@ -101,8 +101,7 @@ class Volume(dj.Imported):
         px_depth (int): total number of voxels in the z dimension.
         depth_mean_brightness (longblob): optional, mean brightness of each slice across
         the depth (z) dimension of the stack.
-        volume (longblob): volumetric data - np.ndarray with shape (z, y, x) and
-        dtype('uint8').
+        volume_file_path (str): Relative path of the volumetric data with shape (z, y, x)
     """
 
     definition = """
@@ -112,7 +111,7 @@ class Volume(dj.Imported):
     px_height: int # total number of voxels in y dimension
     px_depth: int # total number of voxels in z dimension
     depth_mean_brightness=null: longblob  # mean brightness of each slice across the depth (z) dimension of the stack
-    volume_file_path: varchar(255)  # Path of the volumetric data with shape (z, y, x)
+    volume_file_path: varchar(255)  # Relative path of the volumetric data with shape (z, y, x)
     """
 
     def make(self, key):
@@ -312,11 +311,9 @@ class Segmentation(dj.Computed):
             volume_file_path = find_full_path(
                 get_volume_root_data_dir(), volume_relative_path
             ).as_posix()
-            print("load volume data")
             volume_data = TiffFile(volume_file_path).asarray()
-            print("create cellpose model")
+
             model = cellpose_models.CellposeModel(model_type=params["model_type"])
-            print("model evaluation started")
             cellpose_results = model.eval(
                 [volume_data],
                 diameter=params["diameter"],
@@ -329,7 +326,6 @@ class Segmentation(dj.Computed):
             )
             masks, flows, styles = cellpose_results
 
-            print("create mask array")
             mask_entries = []
             for mask_id in set(masks[0].flatten()) - {0}:
                 mask = np.argwhere(masks[0] == mask_id)
@@ -354,6 +350,5 @@ class Segmentation(dj.Computed):
         else:
             raise NotImplementedError
 
-        print("begin insert")
         self.insert1(key)
         self.Mask.insert(mask_entries)

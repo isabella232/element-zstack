@@ -44,7 +44,7 @@ repos:
 
           # these are errors that will be ignored by flake8
           # https://www.flake8rules.com/rules/{code}.html
-          - "--ignore=E203,E501,W503,W605,E402"
+          - "--ignore=E203,E501,W503,W605"
           # E203 - Colons should not have any space before them.
           #        Needed for list indexing
           # E501 - Line lengths are recommended to be no greater than 79 characters.
@@ -53,6 +53,4 @@ repos:
           #        Needed because not compatible with black
           # W605 - a backslash-character pair that is not a valid escape sequence now
           #        generates a DeprecationWarning. This will eventually become a SyntaxError.
-          #        Needed because we use \d as an escape sequence. Need to add r'\d str'
-          # E402 - Place module level import at the top.
-          #        Needed to prevent circular import error
+          #        Needed because we use \d as an escape sequence

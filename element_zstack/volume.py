@@ -478,7 +478,7 @@ class Segmentation(dj.Computed):
             masks, flows, styles = cellpose_results
 
             mask_entries = []
-            for mask_id in set(masks[0].flatten()) - {0}:
+            for mask_id in set(masks.flatten()) - {0}:
                 mask = np.argwhere(masks[0] == mask_id)
                 mask_zpix, mask_ypix, mask_xpix = mask.T
                 mask_npix = mask.shape[0]

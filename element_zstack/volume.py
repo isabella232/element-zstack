@@ -1,16 +1,16 @@
 import importlib
 import inspect
-import logging
 import pathlib
+import datajoint as dj
 import numpy as np
+
 from tifffile import TiffFile
 from typing import Union
 
-import datajoint as dj
 from element_interface.utils import dict_to_uuid, find_full_path, find_root_directory
 
 
-logger = logging.getLogger("datajoint")
+logger = dj.logger
 
 schema = dj.Schema()
 _linking_module = None
@@ -96,7 +96,7 @@ def get_processed_root_data_dir() -> Union[str, pathlib.Path]:
         return get_volume_root_data_dir()[0]
 
 
-def get_volume_tif_file(scan_key: dict) -> (str, pathlib.Path):
+def get_volume_tif_file(scan_key: dict) -> Union[str, pathlib.Path]:
     """Retrieve the full path to the TIF file of the volumetric data associated with a given scan.
     Args:
         scan_key: Primary key of a Scan entry.
@@ -456,7 +456,7 @@ class Segmentation(dj.Computed):
                 raise e
 
         if task_mode == "trigger":
-            from cellpose import models as cellpose_models
+            from cellpose import io, models as cellpose_models
 
             volume_relative_path = (Volume & key).fetch1("volume_file_path")
             volume_file_path = find_full_path(
@@ -475,31 +475,48 @@ class Segmentation(dj.Computed):
                 anisotropy=params["anisotropy"],
                 progress=True,
             )
-            masks, flows, styles = cellpose_results
+            masks, flows, _ = cellpose_results
 
-            mask_entries = []
-            for mask_id in set(masks.flatten()) - {0}:
-                mask = np.argwhere(masks[0] == mask_id)
-                mask_zpix, mask_ypix, mask_xpix = mask.T
-                mask_npix = mask.shape[0]
-                mask_center_z, mask_center_y, mask_center_x = mask.mean(axis=0)
-                mask_weights = np.full_like(mask_zpix, 1)
-                mask_entries.append(
-                    {
-                        **key,
-                        "mask": mask_id,
-                        "mask_npix": mask_npix,
-                        "mask_center_x": mask_center_x,
-                        "mask_center_y": mask_center_y,
-                        "mask_center_z": mask_center_z,
-                        "mask_xpix": mask_xpix,
-                        "mask_ypix": mask_ypix,
-                        "mask_zpix": mask_zpix,
-                        "mask_weights": mask_weights,
-                    }
-                )
+            io.masks_flows_to_seg(
+                volume_data,
+                masks,
+                flows,
+                (output_dir / f"subject_{key['subject_id']}_session_{key['session']}_scan_{key['scan_idx']}").as_posix(),
+                channels=params.get("channels", [[0, 0]]),
+                diams=[params["diameter"]],
+            )
         else:
-            raise NotImplementedError
+            seg_file_location = list(output_dir.rglob("*_seg.npy"))
+            if not seg_file_location:
+                raise FileNotFoundError(f"No cellpose segmentation file found at {output_dir}")
+            if len(seg_file_location) > 1:
+                raise ValueError(f"Multiple possible cellpose segmentation files found at {output_dir}. Expected 1.")
+            
+            segmentation_data = np.load(seg_file_location[0], allow_pickle=True).item()
+            masks = segmentation_data["masks"]
+            flows = segmentation_data["flows"]        
+        
+        mask_entries = []
+        for mask_id in set(masks.flatten()) - {0}:
+            mask = np.argwhere(masks == mask_id)
+            mask_zpix, mask_ypix, mask_xpix = mask[:, 0], mask[:, 1], mask[:, 2]
+            mask_npix = np.sum(masks == mask_id, axis=(0,1,2))
+            mask_center_z, mask_center_y, mask_center_x = mask[:, 0].mean(axis=0), mask[:, 1].mean(axis=0), mask[:, 2].mean(axis=0) 
+            mask_weights = np.full_like(masks, 1)
+            mask_entries.append(
+                {
+                    **key,
+                    "mask": mask_id,
+                    "mask_npix": mask_npix,
+                    "mask_center_x": mask_center_x,
+                    "mask_center_y": mask_center_y,
+                    "mask_center_z": mask_center_z,
+                    "mask_xpix": mask_xpix,
+                    "mask_ypix": mask_ypix,
+                    "mask_zpix": mask_zpix,
+                    "mask_weights": mask_weights,
+                }
+            )
 
         self.insert1(key)
         self.Mask.insert(mask_entries)

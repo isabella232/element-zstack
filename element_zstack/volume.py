@@ -303,7 +303,7 @@ class SegmentationTask(dj.Manual):
         Returns:
             dir (str): A default output directory for the processed results (segmentation_output_dir
                 in SegmentationTask) based on the following convention:
-                processed_dir / scan_dir / {processing_method}_{paramset_idx}
+                processed_dir / scan_dir / {segmentation_method}_{paramset_idx}
                 e.g.: sub4/sess1/scan0/suite2p_0
         """
         scan_dir = find_full_path(
@@ -313,7 +313,7 @@ class SegmentationTask(dj.Manual):
         root_dir = find_root_directory(get_volume_root_data_dir(), scan_dir)
 
         method = (
-            (SegmentationParamSet & key).fetch1("processing_method").replace(".", "-")
+            (SegmentationParamSet & key).fetch1("segmentation_method").replace(".", "-")
         )
 
         processed_dir = pathlib.Path(get_processed_root_data_dir())
@@ -481,7 +481,7 @@ class Segmentation(dj.Computed):
                 volume_data,
                 masks,
                 flows,
-                (output_dir / f"subject_{key['subject_id']}_session_{key['session']}_scan_{key['scan_idx']}").as_posix(),
+                (output_dir / f"subject_{key['subject']}_session_{key['session_id']}_scan_{key['scan_id']}").as_posix(),
                 channels=params.get("channels", [[0, 0]]),
                 diams=[params["diameter"]],
             )
@@ -497,29 +497,30 @@ class Segmentation(dj.Computed):
             flows = segmentation_data["flows"]        
         
         mask_entries = []
-        for mask_id in set(masks.flatten()) - {0}:
-            mask = np.argwhere(masks == mask_id)
+        self.insert1({**key})
+        for mask_id in set(masks[0].flatten()) - {0}:
+            mask = np.argwhere(masks[0] == mask_id)
             mask_zpix, mask_ypix, mask_xpix = mask[:, 0], mask[:, 1], mask[:, 2]
-            mask_npix = np.sum(masks == mask_id, axis=(0,1,2))
+            mask_npix = np.sum(masks[0] == mask_id, axis=(0,1,2))
             mask_center_z, mask_center_y, mask_center_x = mask[:, 0].mean(axis=0), mask[:, 1].mean(axis=0), mask[:, 2].mean(axis=0) 
-            mask_weights = np.full_like(masks, 1)
-            mask_entries.append(
-                {
-                    **key,
-                    "mask": mask_id,
-                    "mask_npix": mask_npix,
-                    "mask_center_x": mask_center_x,
-                    "mask_center_y": mask_center_y,
-                    "mask_center_z": mask_center_z,
-                    "mask_xpix": mask_xpix,
-                    "mask_ypix": mask_ypix,
-                    "mask_zpix": mask_zpix,
-                    "mask_weights": mask_weights,
-                }
-            )
+            mask_weights = np.full_like(masks[0], 1)
+            
+            mask_entry = {
+                **key,
+                "mask": mask_id,
+                "mask_npix": mask_npix,
+                "mask_center_x": mask_center_x,
+                "mask_center_y": mask_center_y,
+                "mask_center_z": mask_center_z,
+                "mask_xpix": mask_xpix,
+                "mask_ypix": mask_ypix,
+                "mask_zpix": mask_zpix,
+                "mask_weights": mask_weights,
+            }
+            self.Mask.insert1(mask_entry)
 
-        self.insert1(key)
-        self.Mask.insert(mask_entries)
+        
+        # self.Mask.insert(mask_entries)
         self.Flows.insert(
             {**key, "xy_flow": flows[0], "cell_probability": flows[1], "z_flow": flows[2], "flow_components": flows[3]}
         )

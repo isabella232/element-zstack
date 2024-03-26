@@ -7,3 +7,4 @@ include:
 
 - Andreas Tolias Lab, Baylor College of Medicine
 - Applied Physics Laboratory, Johns Hopkins University
+- Stelios Smirnakis Lab, Harvard Medical School

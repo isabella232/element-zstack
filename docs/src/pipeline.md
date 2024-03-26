@@ -16,11 +16,13 @@ more detailed documentation on each table, see the API docs for the respective s
 
 ![pipeline](https://raw.githubusercontent.com/datajoint/element-zstack/main/images/pipeline.svg)
 
-### `reference` schema ([API docs](https://datajoint.com/docs/elements/element-zstack/latest/api/workflow_zstack/reference))
+### `lab` schema
+
+- For further details see the [lab schema API docs](https://datajoint.com/docs/elements/element-lab/latest/api/element_lab/lab/)
 
 | Table | Description |
 | --- | --- |
-| Device | Lab equipment metadata |
+| Device | Scanner metadata |
 
 ### `subject` schema ([API docs](https://datajoint.com/docs/elements/element-animal/latest/api/element_animal/subject))
 
@@ -48,6 +50,7 @@ more detailed documentation on each table, see the API docs for the respective s
 | --- | --- |
 | Volume | Details about the volumetric microscopic images |
 | VoxelSize | Voxel size information about a volume in millimeters |
+| SegmentationMethod | Segmentation method used to process volumetric scans |
 | SegmentationParamSet | Parameters required for segmentation of the volumetric scans |
 | SegmentationTask | Task defined by a combination of Volume and SegmentationParamSet |
 | Segmentation | The core table that executes a SegmentationTask |

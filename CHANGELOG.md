@@ -3,8 +3,9 @@
 Observes [Semantic Versioning](https://semver.org/spec/v2.0.0.html) standard and
 [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) convention.
 
-## [0.2.0] - 2024-01-18
+## [0.2.0] - 2024-03-25
 
++ Add - Export and load cellpose segmentation data
 + Add - Devcontainer for GitHub codespaces tutorial
 + Add - 60 minute tutorial notebook
 + Update - GitHub Actions no longer release to PyPI

@@ -10,6 +10,10 @@ also provides a tutorial environment and notebooks to learn the pipeline.
 
 ![flowchart](https://raw.githubusercontent.com/datajoint/element-zstack/main/images/flowchart.svg)
 
+## Data Pipeline Diagram
+
+![pipeline](https://raw.githubusercontent.com/datajoint/element-zstack/main/images/pipeline.svg)
+
 ## Getting Started
 
 + Please fork this repository

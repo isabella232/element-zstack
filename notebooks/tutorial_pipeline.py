@@ -5,7 +5,7 @@ from collections.abc import Sequence
 from typing import List
 from element_interface.utils import find_full_path
 from element_lab import lab
-from element_lab.lab import Lab, Location, Project, Protocol, Source, User
+from element_lab.lab import Lab, Location, Project, Protocol, Source, User, Device
 from element_animal import subject, surgery
 from element_animal.subject import Subject
 from element_session import session_with_id as session

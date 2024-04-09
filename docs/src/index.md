@@ -15,15 +15,19 @@ to assemble a fully functional pipeline.
 
 ## Data Pipeline Diagram
 
-![pipeline](https://raw.githubusercontent.com/datajoint/element-zstack/main/images/pipeline.svg)
++ Please fork the [repository](https://github.com/datajoint/element-zstack){:target="_blank"}
 
-## Getting Started
++ Clone the repository to your computer
 
-+ Install from PyPI
+  ```bash
+  git clone https://github.com/<enter_github_username>/element-zstack.git
+  ```
 
-     ```bash
-     pip install element-zstack
-     ```
++ Install with `pip`
+
+  ```bash
+  pip install -e .
+  ```
 
 + [Data Pipeline](./pipeline.md) - Pipeline and table descriptions
 
